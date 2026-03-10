@@ -135,7 +135,6 @@ export default function GiftCardsPage() {
         ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
         : undefined;
       setTransferMsg(msg || "Transfer failed.");
-      setTransferMsg(msg);
     } finally {
       setTransferLoading(false);
     }
@@ -153,7 +152,6 @@ export default function GiftCardsPage() {
         ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
         : undefined;
       setRenewMsg(msg || "Renewal failed.");
-      setRenewMsg(msg);
     } finally {
       setRenewLoading(null);
     }
