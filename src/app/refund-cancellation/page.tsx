@@ -20,7 +20,7 @@ export default function RefundCancellationPage() {
             </section>
             <section>
               <h2 className="font-heading text-xl font-semibold text-foreground">3. Gift Cards</h2>
-              <p className="mt-2">Gift cards are generally non-refundable once purchased, except where required by law. Unused balance may be used toward future bookings within the validity period. Transfer of gift cards may be allowed as per our gift card terms.</p>
+              <p className="mt-2">Gift cards are non-refundable once purchased, except where required by law. Unused balance may be used toward future bookings within the validity period. Transfer of gift cards is allowed as per our gift card terms.</p>
             </section>
             <section>
               <h2 className="font-heading text-xl font-semibold text-foreground">4. No-Show and Late Cancellation</h2>

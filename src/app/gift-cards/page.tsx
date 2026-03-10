@@ -33,7 +33,7 @@ const tiers = [
     popular: false,
   },
   {
-    name: "Elite",
+    name: "Signature",
     tagline: "Most Popular Choice",
     valueMin: 100000,
     valueMax: 250000,
@@ -54,7 +54,7 @@ const tiers = [
     popular: true,
   },
   {
-    name: "Signature",
+    name: "Elite",
     tagline: "Ultimate Luxury",
     valueMin: 250000,
     valueMax: 500000,
@@ -105,8 +105,8 @@ const cardDesigns = [
     iconColor: "text-black/40",
   },
   {
-    name: "Elite",
-    tierLabel: "EFS Elite",
+    name: "Signature",
+    tierLabel: "EFS Signature",
     cardholderName: "Priya Mehta",
     gradient: "from-amber-400 via-yellow-300 to-amber-500",
     valueStr: `${formatInr(100000)} – ${formatInr(250000)}`,
@@ -121,8 +121,8 @@ const cardDesigns = [
     iconColor: "text-amber-950/80",
   },
   {
-    name: "Signature",
-    tierLabel: "EFS Signature",
+    name: "Elite",
+    tierLabel: "EFS Elite",
     cardholderName: "Arjun Kapoor",
     gradient: "from-gray-900 via-gray-800 to-black",
     valueStr: `${formatInr(250000)} – ${formatInr(500000)}`,
