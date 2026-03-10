@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -9,36 +10,13 @@ import { HeroSearch } from "@/components/hero/HeroSearch";
 import { DealCard } from "@/components/deals/DealCard";
 import { Button } from "@/components/ui/button";
 import { SectionReveal } from "@/components/ui/section-reveal";
+import { formatUsdAsInr } from "@/lib/currency";
 
 const deals = [
-  {
-    title: "India",
-    description: "Privately negotiated business class. Save 50–77% off retail fares.",
-    price: "$1,529*",
-    badge: "BIZ CLASS",
-    image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&h=500&fit=crop&q=85",
-  },
-  {
-    title: "Italy",
-    description: "Exclusive business class deals to Rome, Milan & Venice.",
-    price: "$1,919*",
-    badge: "30% OFF",
-    image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&h=500&fit=crop&q=85",
-  },
-  {
-    title: "United Kingdom",
-    description: "Save up to 50% on premium fares to London & beyond.",
-    price: "$1,879*",
-    badge: "BIZ CLASS",
-    image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&h=500&fit=crop&q=85",
-  },
-  {
-    title: "France",
-    description: "Business class to Paris for less. Enjoy the City of Light.",
-    price: "$1,039*",
-    badge: "30% OFF",
-    image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&h=500&fit=crop&q=85",
-  },
+  { title: "India", description: "Privately negotiated business class. Save 50–77% off retail fares.", priceUsd: 1529, badge: "BIZ CLASS", image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&h=500&fit=crop&q=85" },
+  { title: "Italy", description: "Exclusive business class deals to Rome, Milan & Venice.", priceUsd: 1919, badge: "30% OFF", image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&h=500&fit=crop&q=85" },
+  { title: "United Kingdom", description: "Save up to 50% on premium fares to London & beyond.", priceUsd: 1879, badge: "BIZ CLASS", image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&h=500&fit=crop&q=85" },
+  { title: "France", description: "Business class to Paris for less. Enjoy the City of Light.", priceUsd: 1039, badge: "30% OFF", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&h=500&fit=crop&q=85" },
 ];
 
 const whyChoose = [
@@ -118,7 +96,7 @@ const steps = [
 const testimonials = [
   {
     name: "Rajesh Sharma",
-    text: "Incredible service! Saved over $3,000 on my business class flight to London. The team at Easyflynstay went above and beyond with every detail.",
+    text: "Incredible service! Saved over ₹2,55,000 on my business class flight to London. The team at Easyflynstay went above and beyond with every detail.",
     from: "Mumbai, India",
     image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
@@ -171,6 +149,36 @@ const airlines = [
   { name: "Air France", code: "AF", color: "bg-[#002157]", text: "text-white" },
 ];
 
+/** Airline logo from Kiwi CDN (internet). Fallback to code badge if image fails. */
+function AirlineLogo({ name, code, color, text }: { name: string; code: string; color: string; text: string }) {
+  const [imgError, setImgError] = useState(false);
+  const logoUrl = `https://images.kiwi.com/airlines/64/${code}.png`;
+  return (
+    <motion.div
+      whileHover={{ scale: 1.05, y: -2 }}
+      className="flex h-20 items-center justify-center gap-3 border border-border bg-white px-5 shadow-card transition-shadow hover:shadow-card-hover"
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded">
+        {!imgError ? (
+          <Image
+            src={logoUrl}
+            alt={name}
+            width={40}
+            height={40}
+            className="object-contain"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className={`flex h-10 w-10 items-center justify-center ${color} ${text} text-xs font-bold`}>
+            {code}
+          </div>
+        )}
+      </div>
+      <span className="font-heading text-sm font-semibold text-primary">{name}</span>
+    </motion.div>
+  );
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -187,7 +195,7 @@ export default function HomePage() {
       <Navbar />
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative min-h-[600px] overflow-hidden">
+        <section className="relative min-h-[600px] overflow-visible">
           <Image
             src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&h=1000&fit=crop&q=90"
             alt="Travel adventure"
@@ -212,7 +220,7 @@ export default function HomePage() {
               <span className="text-sm font-medium text-accent">PREMIUM TRAVEL EXPERIENCE</span>
             </motion.div>
             <h1 className="font-heading text-4xl font-bold text-white md:text-5xl lg:text-6xl leading-tight">
-              Fly Business & First Class
+              Fly International & Business Domestic
               <br />
               <span className="text-accent">For Less</span>
             </h1>
@@ -243,15 +251,15 @@ export default function HomePage() {
             <p className="text-sm uppercase tracking-wider text-muted-foreground">Trusted by travelers worldwide</p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-8">
               <motion.span whileHover={{ scale: 1.05 }} className="flex items-center gap-2 font-semibold text-primary">
-                <svg className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                <svg className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
                 ARC ACCREDITED
               </motion.span>
               <motion.span whileHover={{ scale: 1.05 }} className="flex items-center gap-2 font-semibold text-primary">
-                <svg className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0l-4.725 2.885a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+                <svg className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0l-4.725 2.885a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
                 BBB A+
               </motion.span>
               <motion.span whileHover={{ scale: 1.05 }} className="flex items-center gap-2 font-semibold text-accent">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 24/7 LIVE CONCIERGE
               </motion.span>
             </div>
@@ -266,7 +274,7 @@ export default function HomePage() {
                 <h2 className="font-heading text-3xl font-semibold text-foreground">Best-Selling Business Class Deals</h2>
                 <p className="mt-2 text-muted-foreground">Save 30–70%* on business class flights to popular destinations.</p>
               </div>
-              <Link href="/booking" className="hidden sm:block text-sm font-medium text-accent hover:underline">View all deals →</Link>
+              <Link href="/" className="hidden sm:block text-sm font-medium text-accent hover:underline">View all deals →</Link>
             </div>
             <motion.div
               variants={containerVariants}
@@ -277,7 +285,7 @@ export default function HomePage() {
             >
               {deals.map((d) => (
                 <motion.div key={d.title} variants={itemVariants}>
-                  <DealCard title={d.title} description={d.description} price={d.price} badge={d.badge} image={d.image} />
+                  <DealCard title={d.title} description={d.description} price={`${formatUsdAsInr(d.priceUsd)}*`} badge={d.badge} image={d.image} />
                 </motion.div>
               ))}
             </motion.div>
@@ -298,9 +306,9 @@ export default function HomePage() {
             <p className="mt-3 text-white/80 max-w-2xl mx-auto">From the streets of Paris to the beaches of Maldives, Easyflynstay connects you to 500+ destinations in premium comfort.</p>
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               {[
-                { dest: "Dubai", img: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&h=450&fit=crop&q=85", tag: "From $899" },
-                { dest: "Maldives", img: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&h=450&fit=crop&q=85", tag: "From $1,299" },
-                { dest: "Singapore", img: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&h=450&fit=crop&q=85", tag: "From $1,099" },
+                { dest: "Dubai", img: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&h=450&fit=crop&q=85", tag: `From ${formatUsdAsInr(899)}` },
+                { dest: "Maldives", img: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&h=450&fit=crop&q=85", tag: `From ${formatUsdAsInr(1299)}` },
+                { dest: "Singapore", img: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&h=450&fit=crop&q=85", tag: `From ${formatUsdAsInr(1099)}` },
               ].map((item) => (
                 <motion.div
                   key={item.dest}
@@ -351,42 +359,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* How booking works */}
-        <section className="py-16">
-          <div className="mx-auto max-w-7xl px-4">
-            <SectionReveal>
-              <h2 className="font-heading text-3xl font-semibold text-foreground text-center">How Booking Works</h2>
-            </SectionReveal>
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
-            >
-              {steps.map((s, i) => (
-                <motion.div
-                  key={s.n}
-                  variants={itemVariants}
-                  className="relative flex gap-4 border border-border bg-card p-6"
-                >
-                  {i < steps.length - 1 && (
-                    <div className="absolute -right-3 top-1/2 hidden lg:block w-6 h-0.5 bg-accent" />
-                  )}
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center border-2 border-accent bg-accent/10 text-accent">
-                    {s.icon}
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-accent uppercase tracking-wider">Step {s.n}</p>
-                    <h3 className="font-heading text-lg font-semibold">{s.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{s.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
         {/* Testimonials */}
         <section className="relative border-t border-border py-16 overflow-hidden">
           <Image
@@ -425,7 +397,7 @@ export default function HomePage() {
                   </div>
                   <div className="mb-3 flex text-accent">
                     {[...Array(t.rating)].map((_, i) => (
-                      <svg key={i} className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                      <svg key={i} className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                     ))}
                   </div>
                   <p className="text-muted-foreground italic text-sm leading-relaxed">&ldquo;{t.text}&rdquo;</p>
@@ -442,16 +414,7 @@ export default function HomePage() {
             <p className="mt-2 text-muted-foreground">We work with the world&apos;s best airlines to bring you premium fares.</p>
             <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6">
               {airlines.map((a) => (
-                <motion.div
-                  key={a.name}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  className="flex h-20 items-center justify-center gap-3 border border-border bg-white px-5 shadow-card transition-shadow hover:shadow-card-hover"
-                >
-                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center ${a.color} ${a.text} text-xs font-bold`}>
-                    {a.code}
-                  </div>
-                  <span className="font-heading text-sm font-semibold text-primary">{a.name}</span>
-                </motion.div>
+                <AirlineLogo key={a.name} name={a.name} code={a.code} color={a.color} text={a.text} />
               ))}
             </div>
           </SectionReveal>
@@ -461,29 +424,38 @@ export default function HomePage() {
         <section className="relative overflow-hidden bg-primary py-16">
           <div className="absolute inset-0 opacity-10">
             <svg className="h-full w-full" viewBox="0 0 1200 400" fill="none">
-              <circle cx="1100" cy="100" r="250" fill="white" fillOpacity="0.15"/>
-              <circle cx="100" cy="350" r="180" fill="white" fillOpacity="0.1"/>
+              <circle cx="1100" cy="100" r="250" fill="white" fillOpacity="0.15" />
+              <circle cx="100" cy="350" r="180" fill="white" fillOpacity="0.1" />
             </svg>
           </div>
           <SectionReveal className="relative mx-auto max-w-5xl px-4 flex flex-col md:flex-row items-center gap-10">
             <div className="flex-1 text-white">
               <div className="inline-flex items-center gap-2 border border-accent/30 bg-accent/10 px-3 py-1 mb-4">
-                <svg className="h-4 w-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
-                <span className="text-xs font-semibold text-accent tracking-wider uppercase">Gift of Travel</span>
+                <motion.svg
+                  className="h-4 w-4 text-accent shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </motion.svg>
+                <span className="text-xs font-semibold text-accent tracking-wider uppercase">Gift of Travel · Syncing</span>
               </div>
               <h2 className="font-heading text-3xl font-bold md:text-4xl">Premium Gift Cards</h2>
               <p className="mt-3 text-white/80 max-w-md">Give the gift of luxury travel. Three exclusive tiers — Silver, Gold & Black — crafted for every occasion.</p>
               <Link href="/gift-cards" className="mt-6 inline-block">
                 <Button variant="accent" size="lg" className="text-primary font-semibold">
                   Explore Gift Cards
-                  <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                  <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </Button>
               </Link>
             </div>
             <div className="relative w-72 h-44">
               <motion.div
-                animate={{ rotate: [-3, 3, -3] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                animate={{ rotate: [-3, 3, -3], boxShadow: ["0 25px 50px -12px rgba(0,0,0,0.2)", "0 25px 50px -12px rgba(0,0,0,0.3)", "0 25px 50px -12px rgba(0,0,0,0.2)"] }}
+                transition={{ rotate: { repeat: Infinity, duration: 4, ease: "easeInOut" }, boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" } }}
                 className="absolute inset-0 bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 shadow-2xl p-5 flex flex-col justify-between"
               >
                 <div className="flex justify-between items-start">
@@ -491,15 +463,52 @@ export default function HomePage() {
                     <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/40">Easyflynstay</p>
                     <p className="font-heading text-xl font-bold text-black/80">Gold</p>
                   </div>
-                  <svg className="h-6 w-6 text-black/30" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+                  <svg className="h-6 w-6 text-black/30" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg>
                 </div>
                 <div>
                   <p className="text-[9px] text-black/30">Gift Card Value</p>
-                  <p className="font-heading text-lg font-bold text-black/70">$500 – $2,500</p>
+                  <p className="font-heading text-lg font-bold text-black/70">{formatUsdAsInr(500)} – {formatUsdAsInr(2500)}</p>
                 </div>
               </motion.div>
             </div>
           </SectionReveal>
+        </section>
+
+        {/* Ready For Flight (how booking works) */}
+        <section className="py-16 border-t border-border">
+          <div className="mx-auto max-w-7xl px-4">
+            <SectionReveal>
+              <h2 className="font-heading text-3xl font-semibold text-foreground text-center">Ready For Flight</h2>
+              <p className="mt-2 text-muted-foreground text-center">Search, select, book and fly — simple steps to your next trip.</p>
+            </SectionReveal>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+            >
+              {steps.map((s, i) => (
+                <motion.div
+                  key={s.n}
+                  variants={itemVariants}
+                  className="relative flex gap-4 border border-border bg-card p-6"
+                >
+                  {i < steps.length - 1 && (
+                    <div className="absolute -right-3 top-1/2 hidden lg:block w-6 h-0.5 bg-accent" />
+                  )}
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center border-2 border-accent bg-accent/10 text-accent">
+                    {s.icon}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-accent uppercase tracking-wider">Step {s.n}</p>
+                    <h3 className="font-heading text-lg font-semibold">{s.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{s.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
         </section>
 
         {/* CTA */}
@@ -521,7 +530,7 @@ export default function HomePage() {
             <h2 className="font-heading text-3xl font-semibold md:text-4xl">Ready to Fly?</h2>
             <p className="mt-4 text-white/90 text-lg">Get the best fares on business and first class with Easyflynstay. Track your booking anytime.</p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <Link href="/booking">
+              <Link href="/">
                 <Button variant="accent" size="lg" className="text-primary font-semibold shadow-lg">Search Flights</Button>
               </Link>
               <Link href="/track-booking">

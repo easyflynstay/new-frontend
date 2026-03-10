@@ -2,19 +2,22 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { SectionReveal } from "@/components/ui/section-reveal";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatInr } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 const tiers = [
   {
-    name: "Silver",
+    name: "Prime",
     tagline: "The Perfect Start",
-    value: "$250 – $500",
+    valueMin: 50000,
+    valueMax: 100000,
     color: "from-slate-300 via-slate-200 to-slate-400",
     borderColor: "border-slate-300",
     textColor: "text-slate-700",
@@ -30,9 +33,10 @@ const tiers = [
     popular: false,
   },
   {
-    name: "Gold",
+    name: "Elite",
     tagline: "Most Popular Choice",
-    value: "$500 – $2,500",
+    valueMin: 100000,
+    valueMax: 250000,
     color: "from-amber-400 via-yellow-300 to-amber-500",
     borderColor: "border-accent",
     textColor: "text-amber-800",
@@ -50,9 +54,10 @@ const tiers = [
     popular: true,
   },
   {
-    name: "Black",
+    name: "Signature",
     tagline: "Ultimate Luxury",
-    value: "$2,500 – $10,000",
+    valueMin: 250000,
+    valueMax: 500000,
     color: "from-gray-900 via-gray-800 to-black",
     borderColor: "border-gray-800",
     textColor: "text-white",
@@ -84,34 +89,49 @@ const itemVariants = {
 
 const cardDesigns = [
   {
-    name: "Silver",
+    name: "Prime",
+    tierLabel: "EFS Prime",
+    cardholderName: "Rahul Sharma",
     gradient: "from-slate-300 via-slate-200 to-slate-400",
-    value: "$250 – $500",
+    valueStr: `${formatInr(50000)} – ${formatInr(100000)}`,
+    cardNumber: "XXXX XXXX XXXX 1234",
+    validFrom: "03/26",
+    validThru: "03/29",
     nameColor: "text-slate-700",
     subColor: "text-black/40",
-    valColor: "text-black/30",
+    valColor: "text-black/50",
     valTextColor: "text-black/60",
     iconBg: "bg-black/10",
     iconColor: "text-black/40",
   },
   {
-    name: "Gold",
+    name: "Elite",
+    tierLabel: "EFS Elite",
+    cardholderName: "Priya Mehta",
     gradient: "from-amber-400 via-yellow-300 to-amber-500",
-    value: "$500 – $2,500",
-    nameColor: "text-amber-900",
-    subColor: "text-black/40",
-    valColor: "text-black/30",
-    valTextColor: "text-black/70",
-    iconBg: "bg-black/10",
-    iconColor: "text-black/50",
+    valueStr: `${formatInr(100000)} – ${formatInr(250000)}`,
+    cardNumber: "XXXX XXXX XXXX 5678",
+    validFrom: "03/26",
+    validThru: "03/29",
+    nameColor: "text-amber-950",
+    subColor: "text-amber-950/70",
+    valColor: "text-amber-950/85",
+    valTextColor: "text-amber-950",
+    iconBg: "bg-amber-950/15",
+    iconColor: "text-amber-950/80",
   },
   {
-    name: "Black",
+    name: "Signature",
+    tierLabel: "EFS Signature",
+    cardholderName: "Arjun Kapoor",
     gradient: "from-gray-900 via-gray-800 to-black",
-    value: "$2,500 – $10,000",
+    valueStr: `${formatInr(250000)} – ${formatInr(500000)}`,
+    cardNumber: "XXXX XXXX XXXX 9012",
+    validFrom: "03/26",
+    validThru: "03/29",
     nameColor: "text-white",
     subColor: "text-white/50",
-    valColor: "text-white/40",
+    valColor: "text-white/60",
     valTextColor: "text-accent",
     iconBg: "bg-white/10",
     iconColor: "text-accent",
@@ -122,12 +142,12 @@ function RotatingCards({ active, onSelect }: { active: number; onSelect: (i: num
   const getPosition = (index: number) => {
     const diff = (index - active + 3) % 3;
     if (diff === 0) return { x: 0, y: 0, scale: 1, zIndex: 30, rotate: 0, opacity: 1 };
-    if (diff === 1) return { x: 160, y: 10, scale: 0.85, zIndex: 20, rotate: 6, opacity: 0.7 };
-    return { x: -160, y: 10, scale: 0.85, zIndex: 10, rotate: -6, opacity: 0.7 };
+    if (diff === 1) return { x: 200, y: 12, scale: 0.88, zIndex: 20, rotate: 5, opacity: 0.75 };
+    return { x: -200, y: 12, scale: 0.88, zIndex: 10, rotate: -5, opacity: 0.75 };
   };
 
   return (
-    <div className="relative h-52 w-96 mx-auto">
+    <div className="relative h-[320px] w-[420px] mx-auto">
       {cardDesigns.map((card, i) => {
         const pos = getPosition(i);
         return (
@@ -143,32 +163,42 @@ function RotatingCards({ active, onSelect }: { active: number; onSelect: (i: num
             transition={{ duration: 0.6, ease: "easeInOut" }}
             onClick={() => onSelect(i)}
             className={cn(
-              "absolute left-1/2 top-0 -ml-[144px] w-72 h-44 cursor-pointer bg-gradient-to-br shadow-2xl",
+              "absolute left-1/2 top-0 -translate-x-1/2 w-[380px] h-[240px] cursor-pointer rounded-xl bg-gradient-to-br shadow-2xl border border-white/10 overflow-hidden",
               card.gradient
             )}
             style={{ zIndex: pos.zIndex }}
           >
             <div className="absolute inset-0 opacity-20 overflow-hidden">
-              <svg className="h-full w-full" viewBox="0 0 400 200" fill="none">
-                <circle cx="350" cy="50" r="120" fill="white" fillOpacity="0.15" />
-                <circle cx="50" cy="180" r="80" fill="white" fillOpacity="0.1" />
+              <svg className="h-full w-full" viewBox="0 0 400 240" fill="none">
+                <circle cx="320" cy="40" r="140" fill="white" fillOpacity="0.12" />
+                <circle cx="60" cy="200" r="100" fill="white" fillOpacity="0.08" />
               </svg>
             </div>
-            <div className="relative flex h-full flex-col justify-between p-5">
+            <div className="relative flex h-full flex-col justify-between p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className={cn("text-[9px] font-bold uppercase tracking-[0.2em]", card.subColor)}>Easyflynstay</p>
-                  <p className={cn("font-heading text-xl font-bold mt-0.5", card.nameColor)}>{card.name}</p>
+                  <p className={cn("text-sm font-bold uppercase tracking-[0.2em]", card.subColor)}>EasyFlyNStay</p>
+                  <p className={cn("font-heading text-lg font-bold mt-1", card.nameColor)}>{card.name}</p>
                 </div>
-                <div className={cn("flex h-8 w-8 items-center justify-center", card.iconBg)}>
+                <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", card.iconBg)}>
                   <svg className={cn("h-4 w-4", card.iconColor)} fill="currentColor" viewBox="0 0 24 24">
                     <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
                   </svg>
                 </div>
               </div>
-              <div>
-                <p className={cn("text-[9px]", card.valColor)}>Gift Card Value</p>
-                <p className={cn("font-heading text-lg font-bold", card.valTextColor)}>{card.value}</p>
+              <p className={cn("font-mono text-lg font-semibold tracking-widest", card.nameColor)}>{card.cardNumber}</p>
+              <div className="flex items-end justify-between">
+                <div className="space-y-0.5">
+                  <p className={cn("text-[9px] uppercase tracking-wider", card.valColor)}>Valid from {card.validFrom}</p>
+                  <p className={cn("text-[9px] uppercase tracking-wider", card.valColor)}>Valid thru {card.validThru}</p>
+                </div>
+                <div>
+                  <p className={cn("text-[10px] uppercase tracking-wider", card.valColor)}>Cardholder</p>
+                  <p className={cn("font-heading text-sm font-bold", card.nameColor)}>{card.cardholderName}</p>
+                </div>
+                <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded", card.name === "Signature" ? "bg-white/20" : "bg-primary")}>
+                  <span className="font-heading text-sm font-bold text-accent">E</span>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -179,7 +209,17 @@ function RotatingCards({ active, onSelect }: { active: number; onSelect: (i: num
 }
 
 export default function GiftCardsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [activeCard, setActiveCard] = useState(1);
+
+  const handlePurchaseClick = () => {
+    if (user) {
+      router.push("/dashboard/gift-cards");
+    } else {
+      router.push("/login");
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -223,11 +263,9 @@ export default function GiftCardsPage() {
                 </h1>
                 <p className="mt-4 text-lg text-white/70 max-w-md">Three exclusive tiers crafted for every occasion. Give the gift of luxury travel with Easyflynstay.</p>
                 <div className="mt-6 flex gap-3">
-                  <Link href="/login">
-                    <Button variant="accent" size="lg" className="text-primary font-semibold">
-                      Purchase Gift Card
-                    </Button>
-                  </Link>
+                  <Button variant="accent" size="lg" className="text-primary font-semibold" onClick={handlePurchaseClick}>
+                    Purchase Gift Card
+                  </Button>
                 </div>
               </motion.div>
 
@@ -294,7 +332,7 @@ export default function GiftCardsPage() {
                     className={cn(
                       "relative flex flex-col overflow-hidden border-2 shadow-lg transition-shadow hover:shadow-2xl h-full",
                       tier.popular ? "border-accent" : tier.borderColor,
-                      tier.name === "Black" ? tier.bgCard : "bg-white"
+                      tier.name === "Signature" ? tier.bgCard : "bg-white"
                     )}
                   >
                     {tier.popular && (
@@ -304,59 +342,61 @@ export default function GiftCardsPage() {
                     )}
 
                     {/* Card visual */}
-                    <div className={cn("relative h-48 overflow-hidden bg-gradient-to-br", tier.color)}>
+                    <div className={cn("relative h-56 overflow-hidden bg-gradient-to-br", tier.color)}>
                       <div className="absolute inset-0 opacity-20">
                         <svg className="h-full w-full" viewBox="0 0 400 200" fill="none">
-                          <circle cx="350" cy="50" r="120" fill="white" fillOpacity="0.1"/>
-                          <circle cx="50" cy="180" r="80" fill="white" fillOpacity="0.08"/>
+                          <circle cx="350" cy="50" r="120" fill="white" fillOpacity="0.1" />
+                          <circle cx="50" cy="180" r="80" fill="white" fillOpacity="0.08" />
                         </svg>
                       </div>
                       <div className="relative flex h-full flex-col justify-between p-6">
                         <div className="flex items-start justify-between">
                           <div>
-                            <p className={cn("text-xs font-bold uppercase tracking-[0.2em]", tier.name === "Black" ? "text-white/60" : "text-black/40")}>Easyflynstay</p>
-                            <p className={cn("font-heading text-2xl font-bold mt-1", tier.name === "Black" ? "text-white" : "text-black/80")}>{tier.name}</p>
+                            <p className={cn("text-sm font-bold uppercase tracking-[0.2em]", tier.name === "Signature" ? "text-white/70" : "text-black/50")}>EasyFlyNStay</p>
+                            <p className={cn("font-heading text-2xl font-bold mt-1", tier.name === "Signature" ? "text-white" : "text-black/80")}>{tier.name}</p>
                           </div>
-                          <div className={cn("flex h-10 w-10 items-center justify-center", tier.name === "Black" ? "bg-white/10" : "bg-black/10")}>
-                            <svg className={cn("h-5 w-5", tier.name === "Black" ? "text-accent" : "text-black/50")} fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+                          <div className={cn("flex h-10 w-10 items-center justify-center", tier.name === "Signature" ? "bg-white/10" : "bg-black/10")}>
+                            <svg className={cn("h-5 w-5", tier.name === "Signature" ? "text-accent" : "text-black/50")} fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg>
                           </div>
                         </div>
                         <div>
-                          <p className={cn("text-xs", tier.name === "Black" ? "text-white/50" : "text-black/30")}>Gift Card Value</p>
-                          <p className={cn("font-heading text-xl font-bold", tier.name === "Black" ? "text-accent" : "text-black/70")}>{tier.value}</p>
+                          <p className={cn("font-mono text-sm font-semibold tracking-widest", tier.name === "Signature" ? "text-white/80" : tier.name === "Elite" ? "text-amber-950/80" : "text-black/50")}>XXXX XXXX XXXX 1234</p>
+                          <p className={cn("text-xs mt-1", tier.name === "Signature" ? "text-white/50" : tier.name === "Elite" ? "text-amber-950/80" : "text-black/30")}>Gift Card Value</p>
+                          <p className={cn("font-heading text-xl font-bold", tier.name === "Signature" ? "text-accent" : tier.name === "Elite" ? "text-amber-950" : "text-black/70")}>{formatInr(tier.valueMin)} – {formatInr(tier.valueMax)}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Details */}
-                    <div className={cn("flex flex-1 flex-col p-6", tier.name === "Black" ? "text-white" : "")}>
+                    <div className={cn("flex flex-1 flex-col p-6", tier.name === "Signature" ? "text-white" : "")}>
                       <div className={cn("mb-4 inline-flex self-start items-center gap-1.5 px-3 py-1 text-xs font-semibold", tier.chipBg, tier.accentColor)}>
-                        <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                         {tier.tagline}
                       </div>
 
                       <ul className="flex-1 space-y-2.5">
                         {tier.features.map((f) => (
                           <li key={f} className="flex items-start gap-2 text-sm">
-                            <svg className={cn("mt-0.5 h-4 w-4 shrink-0", tier.accentColor)} fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                            <span className={tier.name === "Black" ? "text-white/80" : "text-muted-foreground"}>{f}</span>
+                            <svg className={cn("mt-0.5 h-4 w-4 shrink-0", tier.accentColor)} fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                            <span className={tier.name === "Signature" ? "text-white/80" : "text-muted-foreground"}>{f}</span>
                           </li>
                         ))}
                       </ul>
 
-                      <Link href="/login" className="mt-6 block">
+                      <div className="mt-6">
                         <Button
                           variant={tier.popular ? "accent" : "outline"}
                           className={cn(
                             "w-full font-semibold",
                             tier.popular && "text-primary shadow-lg",
-                            tier.name === "Black" && !tier.popular && "border-white/30 text-white hover:bg-white hover:text-primary"
+                            tier.name === "Signature" && !tier.popular && "border-white/30 text-white hover:bg-white hover:text-primary"
                           )}
                           size="lg"
+                          onClick={handlePurchaseClick}
                         >
                           Purchase {tier.name} Card
                         </Button>
-                      </Link>
+                      </div>
                     </div>
                   </motion.div>
                 </motion.div>
@@ -373,9 +413,9 @@ export default function GiftCardsPage() {
             </SectionReveal>
             <div className="grid gap-8 sm:grid-cols-3">
               {[
-                { step: "01", title: "Choose & Purchase", desc: "Select your preferred tier and complete the purchase securely.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg> },
-                { step: "02", title: "Send to Loved Ones", desc: "Gift card is delivered instantly via email with a personal message.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> },
-                { step: "03", title: "Redeem & Fly", desc: "Apply the gift card code at checkout for any Easyflynstay booking.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg> },
+                { step: "01", title: "Choose & Purchase", desc: "Select your preferred tier and complete the purchase securely.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg> },
+                { step: "02", title: "Send to Loved Ones", desc: "Gift card is delivered instantly via email with a personal message.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> },
+                { step: "03", title: "Redeem & Fly", desc: "Apply the gift card code at checkout for any Easyflynstay booking.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg> },
               ].map((s) => (
                 <SectionReveal key={s.step}>
                   <div className="text-center">
@@ -401,9 +441,9 @@ export default function GiftCardsPage() {
             <div className="space-y-4">
               {[
                 { q: "Can I use a gift card for any flight?", a: "Yes, all Easyflynstay gift cards can be redeemed on any flight booking — economy through first class." },
-                { q: "Do gift cards expire?", a: "Silver cards are valid for 12 months, Gold for 24 months, and Black for 36 months from the date of purchase." },
+                { q: "Do gift cards expire?", a: "Prime cards are valid for 12 months, Elite for 24 months, and Signature for 36 months from the date of purchase." },
                 { q: "Can I combine multiple gift cards?", a: "Absolutely. You can apply multiple gift card codes to a single booking." },
-                { q: "Is there a physical card option?", a: "The Black tier includes a premium physical card delivered in an exclusive gift box. Silver and Gold are digital-only." },
+                { q: "Is there a physical card option?", a: "The Signature tier includes a premium physical card delivered in an exclusive gift box. Prime and Elite are digital-only." },
               ].map((item) => (
                 <SectionReveal key={item.q}>
                   <div className="border border-border bg-white p-5">

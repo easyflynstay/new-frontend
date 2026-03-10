@@ -1,13 +1,11 @@
 import Link from "next/link";
 
 const footerLinks = [
-  { label: "Book a Flight", href: "/booking" },
   { label: "Track Booking", href: "/track-booking" },
   { label: "Gift Cards", href: "/gift-cards" },
   { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-  { label: "Terms", href: "/terms" },
 ];
 
 export function Footer() {
@@ -34,8 +32,9 @@ export function Footer() {
           </div>
           <div>
             <h4 className="font-heading text-sm font-semibold uppercase">Contact</h4>
-            <p className="mt-2 text-sm text-white/80">888-668-0828</p>
-            <p className="text-sm text-white/80">support@easyflynstay.com</p>
+            <p className="mt-2 text-sm text-white/80">+91 63 66 02 88 63</p>
+            <p className="text-sm text-white/80">Support@easyflynstay.com</p>
+            <p className="mt-1 text-sm text-white/80">Ground Floor, Plot No: 128-P2, Near Ginger Hotel, EPIP Zone, Whitefield, Bengaluru, Karnataka 560066</p>
           </div>
           <div>
             <h4 className="font-heading text-sm font-semibold uppercase">24/7 Concierge</h4>
@@ -53,8 +52,15 @@ export function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-8 border-t border-white/20 pt-8 text-center text-sm text-white/60">
-          &copy; {new Date().getFullYear()} Easyflynstay. All rights reserved.
+        <div className="mt-8 border-t border-white/20 pt-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/70">
+            <Link href="/terms" className="hover:text-accent transition-colors">Terms &amp; Conditions</Link>
+            <Link href="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link>
+            <Link href="/refund-cancellation" className="hover:text-accent transition-colors">Refund &amp; Cancellation Policy</Link>
+          </div>
+          <p className="mt-4 text-center text-sm text-white/60">
+            &copy; {new Date().getFullYear()} Easyflynstay. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

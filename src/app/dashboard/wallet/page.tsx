@@ -43,7 +43,7 @@ export default function WalletPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-white/50">Available Balance</p>
-                <p className="mt-2 font-heading text-4xl font-bold">${balance.toLocaleString()}<span className="text-lg text-white/50">.00</span></p>
+                <p className="mt-2 font-heading text-4xl font-bold">₹{balance.toLocaleString("en-IN")}<span className="text-lg text-white/50">.00</span></p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center bg-accent">
                 <span className="font-heading text-lg font-bold text-primary">E</span>
@@ -93,7 +93,7 @@ export default function WalletPage() {
           <p className="font-heading font-semibold text-sm mb-3">Add funds to your wallet</p>
           <div className="flex gap-3 mb-3">
             {[100, 250, 500, 1000].map((a) => (
-              <button key={a} className="border border-border px-4 py-2 text-sm font-medium hover:border-accent hover:bg-accent/5 transition-colors">${a}</button>
+              <button key={a} className="border border-border px-4 py-2 text-sm font-medium hover:border-accent hover:bg-accent/5 transition-colors">₹{a}</button>
             ))}
           </div>
           <div className="flex gap-3">
@@ -139,7 +139,7 @@ export default function WalletPage() {
               </div>
               <div className="text-right shrink-0">
                 <p className={cn("text-sm font-semibold", t.type === "credit" ? "text-emerald-600" : "text-red-500")}>
-                  {t.type === "credit" ? "+" : "-"}${t.amount.toLocaleString()}
+                  {t.type === "credit" ? "+" : "-"}₹{t.amount.toLocaleString("en-IN")}
                 </p>
                 <p className="text-[10px] text-muted-foreground">{t.date}</p>
               </div>

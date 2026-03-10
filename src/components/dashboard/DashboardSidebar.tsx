@@ -98,7 +98,7 @@ export function DashboardSidebar() {
         <div className="bg-accent/5 border border-accent/20 p-4">
           <p className="font-heading text-sm font-semibold text-foreground">Need help?</p>
           <p className="mt-1 text-xs text-muted-foreground">Our concierge team is available 24/7.</p>
-          <p className="mt-2 text-sm font-semibold text-accent">888-668-0828</p>
+          <p className="mt-2 text-sm font-semibold text-accent">+91 63 66 02 88 63</p>
         </div>
       </div>
     </aside>

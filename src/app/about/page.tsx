@@ -13,11 +13,12 @@ const stats = [
   { value: "24/7", label: "Concierge Support" },
 ];
 
-const team = [
-  { name: "Sarah Mitchell", role: "CEO & Founder", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop&crop=face" },
-  { name: "David Chen", role: "Head of Operations", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face" },
-  { name: "Priya Sharma", role: "Travel Director", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=face" },
-];
+// Team section data — to be included when team block is re-enabled
+// const team = [
+//   { name: "Sarah Mitchell", role: "CEO & Founder", image: "..." },
+//   { name: "David Chen", role: "Head of Operations", image: "..." },
+//   { name: "Priya Sharma", role: "Travel Director", image: "..." },
+// ];
 
 export default function AboutPage() {
   return (
@@ -99,7 +100,7 @@ export default function AboutPage() {
               {[
                 { title: "Transparency", desc: "No hidden fees. No surprises. Just honest pricing and genuine service." },
                 { title: "Excellence", desc: "We go above and beyond to ensure every journey exceeds expectations." },
-                { title: "Trust", desc: "ARC accredited and BBB A+ rated. Your confidence is our foundation." },
+                { title: "Trust", desc: "Trust and credibility at each step. Your confidence is our foundation." },
               ].map((v) => (
                 <motion.div
                   key={v.title}
@@ -114,8 +115,8 @@ export default function AboutPage() {
           </SectionReveal>
         </section>
 
-        {/* Team */}
-        <section className="py-16">
+        {/* Team - hidden for now, to be included later */}
+        {/* <section className="py-16">
           <SectionReveal className="mx-auto max-w-7xl px-4 text-center">
             <h2 className="font-heading text-3xl font-semibold text-foreground">Meet Our Leadership</h2>
             <p className="mt-2 text-muted-foreground">Experienced professionals dedicated to your travel experience.</p>
@@ -131,7 +132,7 @@ export default function AboutPage() {
               ))}
             </div>
           </SectionReveal>
-        </section>
+        </section> */}
       </main>
       <Footer />
     </div>

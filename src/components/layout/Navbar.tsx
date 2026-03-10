@@ -10,7 +10,6 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { href: "/", label: "HOME" },
-  { href: "/booking", label: "BOOK" },
   { href: "/track-booking", label: "TRACK BOOKING" },
   { href: "/gift-cards", label: "GIFT CARDS" },
   { href: "/blog", label: "BLOG" },
@@ -49,14 +48,14 @@ export function Navbar() {
               <span className="font-heading text-lg font-bold text-accent">E</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-heading text-xl font-bold tracking-tight text-primary">Easyflynstay</span>
+              <span className="font-heading text-xl font-bold tracking-tight text-primary">EASYFLYNSTAY</span>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Fly Easy, Stay Easy</span>
             </div>
           </Link>
           <div className="flex items-center gap-4 text-sm text-charcoal">
-            <span className="hidden sm:inline font-medium">ARC ACCREDITED</span>
+            <span className="hidden sm:inline font-medium">PREMIUM TRAVEL EXPERIENCE</span>
             <span className="hidden sm:inline font-medium">24/7 CONCIERGE</span>
-            <span className="font-semibold text-accent">888-668-0828</span>
+            <span className="font-semibold text-accent">+91 63 66 02 88 63</span>
           </div>
         </div>
       </div>
