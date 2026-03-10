@@ -63,7 +63,7 @@ const tiers = [
       "Valid for 36 months",
       "Redeemable on any flight or hotel",
       "Dedicated personal travel concierge",
-      "Guaranteed first class upgrade",
+      //"Guaranteed first class upgrade",
       "Airport lounge access included",
       "Premium physical card with gift box",
       "VIP customer support line",
