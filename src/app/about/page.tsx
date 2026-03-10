@@ -7,8 +7,8 @@ import { Footer } from "@/components/layout/Footer";
 import { SectionReveal } from "@/components/ui/section-reveal";
 
 const stats = [
-  { value: "10+", label: "Years Experience" },
-  { value: "50K+", label: "Happy Travelers" },
+  { value: "5+", label: "Years Experience" },
+  { value: "5K+", label: "Happy Travelers" },
   { value: "500+", label: "Destinations" },
   { value: "24/7", label: "Concierge Support" },
 ];
