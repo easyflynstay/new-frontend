@@ -70,8 +70,7 @@ function BookingContent() {
   const [giftCardLast4, setGiftCardLast4] = useState("");
   const [userGiftCards, setUserGiftCards] = useState<GiftCard[]>([]);
   const [bookingId, setBookingId] = useState("");
-  const [trackingLink] = useState("");
-  const [emailSent] = useState(true);
+  const [trackingLink, setTrackingLink] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [paymentError, setPaymentError] = useState("");
 
@@ -145,6 +144,7 @@ function BookingContent() {
     }
     const res = await createBooking(payload);
     setBookingId(res.booking_id);
+    if (res.tracking_link) setTrackingLink(res.tracking_link);
     setStep(4);
   };
 
@@ -471,7 +471,7 @@ function BookingContent() {
                     </motion.div>
                     <h2 className="font-heading text-2xl font-semibold text-primary">Booking Confirmed!</h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {emailSent ? "A confirmation email has been sent with your tracking link." : "Save your tracking link below (confirmation email could not be sent)."}
+                      You will receive a confirmation email shortly with your tracking link. Save your booking reference below.
                     </p>
                   </CardHeader>
                   <CardContent className="p-6 text-center">
