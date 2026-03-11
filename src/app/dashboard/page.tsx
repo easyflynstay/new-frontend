@@ -1,17 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMyGiftCards, type GiftCard } from "@/services/giftcards";
-
-const recentActivity = [
-  { action: "Booking confirmed", detail: "BLR → JFK · Business Class", time: "2 hours ago", icon: "✓", color: "bg-emerald-500" },
-  { action: "Wallet credited", detail: "+$500.00 added to wallet", time: "1 day ago", icon: "$", color: "bg-blue-500" },
-  { action: "Gift card purchased", detail: "Gold Card — $1,000", time: "3 days ago", icon: "★", color: "bg-amber-500" },
-  { action: "Flight completed", detail: "JFK → BLR · Jan 10, 2026", time: "2 months ago", icon: "✈", color: "bg-muted-foreground" },
-];
+import { getMyBookings, type MyBookingItem } from "@/services/booking";
+import { getWallet, type WalletTransaction } from "@/services/wallet";
 
 const quickActions = [
   { label: "Book a Flight", href: "/", icon: <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg> },
@@ -30,23 +25,91 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
+function formatRelativeTime(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 60) return diffMins <= 1 ? "Just now" : `${diffMins} mins ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
+  if (diffDays < 30) return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+type ActivityItem = {
+  action: string;
+  detail: string;
+  time: string;
+  icon: string;
+  color: string;
+  sortKey: string;
+};
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const [giftCards, setGiftCards] = useState<GiftCard[]>([]);
+  const [bookings, setBookings] = useState<MyBookingItem[]>([]);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getMyGiftCards().then(setGiftCards).catch(() => {});
+    Promise.all([
+      getMyGiftCards().catch(() => []),
+      getMyBookings().catch(() => []),
+      getWallet().then((w) => {
+        setWalletBalance(w.balance);
+        setWalletTransactions(w.transactions);
+      }).catch(() => {}),
+    ])
+      .then(([cards, bookList]) => {
+        setGiftCards(cards);
+        setBookings(bookList);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const totalGiftCardBalance = giftCards.reduce((sum, c) => sum + Number(c.balance), 0);
   const activeCards = giftCards.filter((c) => c.status === "active");
+  const upcomingCount = bookings.filter((b) => b.status === "confirmed").length;
+
+  const recentActivity: ActivityItem[] = useMemo(() => {
+    const items: ActivityItem[] = [];
+    bookings.slice(0, 10).forEach((b) => {
+      const isCompleted = b.status === "completed";
+      items.push({
+        action: isCompleted ? "Flight completed" : "Booking confirmed",
+        detail: `${b.from_place} → ${b.to_place} · ${b.class_type}`,
+        time: formatRelativeTime(b.created_at),
+        icon: isCompleted ? "✈" : "✓",
+        color: isCompleted ? "bg-muted-foreground" : "bg-emerald-500",
+        sortKey: b.created_at,
+      });
+    });
+    walletTransactions.slice(0, 10).forEach((t) => {
+      if (t.type === "credit") {
+        items.push({
+          action: "Wallet credited",
+          detail: `+₹${Number(t.amount).toLocaleString()} · ${t.description || "Added funds"}`,
+          time: formatRelativeTime(t.created_at),
+          icon: "$",
+          color: "bg-blue-500",
+          sortKey: t.created_at,
+        });
+      }
+    });
+    items.sort((a, b) => (b.sortKey > a.sortKey ? 1 : -1));
+    return items.slice(0, 6);
+  }, [bookings, walletTransactions]);
 
   const stats = [
     {
-      label: "Gift Card Balance",
-      value: `₹${totalGiftCardBalance.toLocaleString()}`,
-      change: `${activeCards.length} active card${activeCards.length !== 1 ? "s" : ""}`,
-      changeColor: "text-emerald-600",
+      label: "Wallet Balance",
+      value: `₹${walletBalance.toLocaleString()}`,
+      change: "Add money from Wallet",
+      changeColor: "text-blue-600",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />
@@ -57,8 +120,8 @@ export default function DashboardPage() {
     },
     {
       label: "Upcoming Flights",
-      value: "0",
-      change: "No upcoming flights",
+      value: String(upcomingCount),
+      change: upcomingCount > 0 ? `${upcomingCount} confirmed` : "No upcoming flights",
       changeColor: "text-blue-600",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -69,9 +132,9 @@ export default function DashboardPage() {
       iconColor: "text-blue-600",
     },
     {
-      label: "Gift Cards",
-      value: String(giftCards.length),
-      change: activeCards.length > 0 ? `${activeCards.length} active` : "No cards yet",
+      label: "Gift Card Balance",
+      value: `₹${totalGiftCardBalance.toLocaleString()}`,
+      change: `${activeCards.length} active card${activeCards.length !== 1 ? "s" : ""}`,
       changeColor: "text-accent",
       icon: (
         <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -95,6 +158,14 @@ export default function DashboardPage() {
       iconColor: "text-purple-600",
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <div className="h-10 w-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl">
@@ -138,24 +209,28 @@ export default function DashboardPage() {
             <Link href="/dashboard/bookings" className="text-xs font-medium text-accent hover:underline">View all</Link>
           </div>
           <div className="divide-y divide-border">
-            {recentActivity.map((a, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + i * 0.1 }}
-                className="flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors"
-              >
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center text-white text-xs font-bold ${a.color}`}>
-                  {a.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{a.action}</p>
-                  <p className="text-xs text-muted-foreground truncate">{a.detail}</p>
-                </div>
-                <span className="shrink-0 text-xs text-muted-foreground">{a.time}</span>
-              </motion.div>
-            ))}
+            {recentActivity.length > 0 ? (
+              recentActivity.map((a, i) => (
+                <motion.div
+                  key={`${a.action}-${a.sortKey}-${i}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 * i }}
+                  className="flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors"
+                >
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center text-white text-xs font-bold ${a.color}`}>
+                    {a.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{a.action}</p>
+                    <p className="text-xs text-muted-foreground truncate">{a.detail}</p>
+                  </div>
+                  <span className="shrink-0 text-xs text-muted-foreground">{a.time}</span>
+                </motion.div>
+              ))
+            ) : (
+              <p className="px-6 py-10 text-center text-muted-foreground">No recent activity.</p>
+            )}
           </div>
         </div>
 

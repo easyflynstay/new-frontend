@@ -68,7 +68,6 @@ const tiers = [
       "Valid for 36 months",
       "Redeemable on any flight or hotel",
       "Dedicated personal travel concierge",
-      //"Guaranteed first class upgrade",
       "Airport lounge access included",
       "Premium physical card with gift box",
       "VIP customer support line",
@@ -341,7 +340,7 @@ export default function GiftCardsPage() {
                       </div>
                     )}
 
-                    {/* Card visual */}
+                    {/* Card visual - light text on Prime (grey) and Signature (gold) need dark text; Elite (dark) needs white text */}
                     <div className={cn("relative h-56 overflow-hidden bg-gradient-to-br", tier.color)}>
                       <div className="absolute inset-0 opacity-20">
                         <svg className="h-full w-full" viewBox="0 0 400 200" fill="none">
@@ -352,23 +351,23 @@ export default function GiftCardsPage() {
                       <div className="relative flex h-full flex-col justify-between p-6">
                         <div className="flex items-start justify-between">
                           <div>
-                            <p className={cn("text-sm font-bold uppercase tracking-[0.2em]", tier.name === "Signature" ? "text-white/70" : "text-black/50")}>EasyFlyNStay</p>
-                            <p className={cn("font-heading text-2xl font-bold mt-1", tier.name === "Signature" ? "text-white" : "text-black/80")}>{tier.name}</p>
+                            <p className={cn("text-sm font-bold uppercase tracking-[0.2em]", tier.name === "Elite" ? "text-white/80" : tier.name === "Signature" ? "text-amber-950/80" : "text-slate-600")}>EasyFlyNStay</p>
+                            <p className={cn("font-heading text-2xl font-bold mt-1", tier.name === "Elite" ? "text-white" : tier.name === "Signature" ? "text-amber-950" : "text-slate-800")}>{tier.name}</p>
                           </div>
-                          <div className={cn("flex h-10 w-10 items-center justify-center", tier.name === "Signature" ? "bg-white/10" : "bg-black/10")}>
-                            <svg className={cn("h-5 w-5", tier.name === "Signature" ? "text-accent" : "text-black/50")} fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg>
+                          <div className={cn("flex h-10 w-10 items-center justify-center", tier.name === "Elite" ? "bg-white/20" : "bg-black/10")}>
+                            <svg className={cn("h-5 w-5", tier.name === "Elite" ? "text-accent" : tier.name === "Signature" ? "text-amber-950/70" : "text-slate-600")} fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg>
                           </div>
                         </div>
                         <div>
-                          <p className={cn("font-mono text-sm font-semibold tracking-widest", tier.name === "Signature" ? "text-white/80" : tier.name === "Elite" ? "text-amber-950/80" : "text-black/50")}>XXXX XXXX XXXX 1234</p>
-                          <p className={cn("text-xs mt-1", tier.name === "Signature" ? "text-white/50" : tier.name === "Elite" ? "text-amber-950/80" : "text-black/30")}>Gift Card Value</p>
-                          <p className={cn("font-heading text-xl font-bold", tier.name === "Signature" ? "text-accent" : tier.name === "Elite" ? "text-amber-950" : "text-black/70")}>{formatInr(tier.valueMin)} – {formatInr(tier.valueMax)}</p>
+                          <p className={cn("font-mono text-sm font-semibold tracking-widest", tier.name === "Elite" ? "text-white/90" : tier.name === "Signature" ? "text-amber-950/90" : "text-slate-600")}>XXXX XXXX XXXX 1234</p>
+                          <p className={cn("text-xs mt-1", tier.name === "Elite" ? "text-white/70" : tier.name === "Signature" ? "text-amber-950/70" : "text-slate-500")}>Gift Card Value</p>
+                          <p className={cn("font-heading text-xl font-bold", tier.name === "Elite" ? "text-accent" : tier.name === "Signature" ? "text-amber-950" : "text-slate-800")}>{formatInr(tier.valueMin)} – {formatInr(tier.valueMax)}</p>
                         </div>
                       </div>
                     </div>
 
-                    {/* Details */}
-                    <div className={cn("flex flex-1 flex-col p-6", tier.name === "Signature" ? "text-white" : "")}>
+                    {/* Details - always on light bg (white or amber-50), so use dark text for readability */}
+                    <div className="flex flex-1 flex-col p-6 text-foreground">
                       <div className={cn("mb-4 inline-flex self-start items-center gap-1.5 px-3 py-1 text-xs font-semibold", tier.chipBg, tier.accentColor)}>
                         <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                         {tier.tagline}
@@ -378,7 +377,7 @@ export default function GiftCardsPage() {
                         {tier.features.map((f) => (
                           <li key={f} className="flex items-start gap-2 text-sm">
                             <svg className={cn("mt-0.5 h-4 w-4 shrink-0", tier.accentColor)} fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                            <span className={tier.name === "Signature" ? "text-white/80" : "text-muted-foreground"}>{f}</span>
+                            <span className="text-muted-foreground">{f}</span>
                           </li>
                         ))}
                       </ul>
@@ -388,8 +387,7 @@ export default function GiftCardsPage() {
                           variant={tier.popular ? "accent" : "outline"}
                           className={cn(
                             "w-full font-semibold",
-                            tier.popular && "text-primary shadow-lg",
-                            tier.name === "Signature" && !tier.popular && "border-white/30 text-white hover:bg-white hover:text-primary"
+                            tier.popular && "text-primary shadow-lg"
                           )}
                           size="lg"
                           onClick={handlePurchaseClick}
