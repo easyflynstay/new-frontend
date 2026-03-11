@@ -106,11 +106,12 @@ export default function BookingsPage() {
         setBookings(list);
       })
       .catch((err: unknown) => {
-        const msg = err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { detail?: string }; status?: number } }).response?.data?.detail
-          : (err as Error)?.message;
-        const status = err && typeof err === "object" && "response" in err
-          ? (err as { response?: { status?: number } }).response?.status;
+        const res =
+          err && typeof err === "object" && "response" in err
+            ? (err as { response?: { data?: { detail?: string }; status?: number } }).response
+            : undefined;
+        const msg = res?.data?.detail ?? (err instanceof Error ? err.message : String(err ?? ""));
+        const status = res?.status;
         if (status === 401) {
           setError("Please sign in again to view your bookings.");
         } else {
