@@ -88,7 +88,7 @@ function BookingContent() {
   }, [user]);
 
   const matchedGiftCard = user && giftCardLast4.length === 4
-    ? userGiftCards.find((c) => c.status === "active" && c.code.slice(-4).toUpperCase() === giftCardLast4.toUpperCase())
+    ? userGiftCards.find((c) => c.status === "active" && c.code.slice(-4).toUpperCase() === giftCardLast4.toUpperCase().trim())
     : null;
   const giftCardBalance = matchedGiftCard ? Number(matchedGiftCard.balance) : 0;
   const giftCardToUse = matchedGiftCard && giftCardBalance >= totalAmount ? totalAmount : 0;
@@ -150,7 +150,7 @@ function BookingContent() {
 
   const handlePayWithGiftCard = async () => {
     if (!matchedGiftCard || !giftCardSufficient) {
-      setPaymentError("Enter last 4 digits of a gift card with balance ≥ ₹" + totalAmount.toLocaleString() + ".");
+      setPaymentError("Enter last 4 characters of a gift card with balance ≥ ₹" + totalAmount.toLocaleString() + ".");
       return;
     }
     setSubmitLoading(true);
@@ -397,13 +397,13 @@ function BookingContent() {
                             animate={{ opacity: 1, height: "auto" }}
                             className="border border-border rounded-lg p-4 space-y-3"
                           >
-                            <Label>Last 4 digits of gift card code</Label>
+                            <Label>Last 4 characters of gift card code</Label>
                             <Input
                               maxLength={4}
-                              placeholder="XXXX"
+                              placeholder="e.g. 80IX"
                               value={giftCardLast4}
-                              onChange={(e) => setGiftCardLast4(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                              className="font-mono text-lg w-24"
+                              onChange={(e) => setGiftCardLast4(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 4).toUpperCase())}
+                              className="font-mono text-lg w-28"
                             />
                             {matchedGiftCard && (
                               <div className="text-sm">
