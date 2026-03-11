@@ -16,6 +16,8 @@ import {
   type GiftCard,
 } from "@/services/giftcards";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
+import { maskGiftCardCode } from "@/lib/utils";
+import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
 
 function tierFromAmount(amount: number) {
   if (amount >= 250000) return { tier: "Signature", gradient: "from-gray-900 via-gray-800 to-gray-900", textColor: "text-gray-100" };
@@ -43,6 +45,8 @@ export default function GiftCardsPage() {
   const [selectedCardCode, setSelectedCardCode] = useState("");
   const [transferLoading, setTransferLoading] = useState(false);
   const [transferMsg, setTransferMsg] = useState("");
+  const [showTransferPin, setShowTransferPin] = useState(false);
+  const [transferPinError, setTransferPinError] = useState("");
 
   // Renew state
   const [renewLoading, setRenewLoading] = useState<string | null>(null);
@@ -119,14 +123,27 @@ export default function GiftCardsPage() {
     }
   };
 
-  const handleTransfer = async (e: React.FormEvent) => {
+  const handleTransferSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCardCode || !recipientEmail) return;
-    setTransferLoading(true);
     setTransferMsg("");
+    setTransferPinError("");
+    setShowTransferPin(true);
+  };
+
+  const handleTransferPinConfirm = async (payment_pin: string) => {
+    if (!selectedCardCode || !recipientEmail) return;
+    setTransferLoading(true);
+    setTransferPinError("");
     try {
-      await transferGiftCard({ giftcard_code: selectedCardCode, recipient_email: recipientEmail });
-      setTransferMsg("Gift card transferred successfully! The recipient will receive an email.");
+      const res = await transferGiftCard({
+        giftcard_code: selectedCardCode,
+        recipient_email: recipientEmail,
+        payment_pin,
+      });
+      const name = (res as { recipient_name?: string }).recipient_name || recipientEmail;
+      setTransferMsg(`Transferred to ${name}.`);
+      setShowTransferPin(false);
       setRecipientEmail("");
       setSelectedCardCode("");
       fetchCards();
@@ -134,7 +151,8 @@ export default function GiftCardsPage() {
       const msg = err && typeof err === "object" && "response" in err
         ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
         : undefined;
-      setTransferMsg(msg || "Transfer failed.");
+      setTransferMsg("");
+      setTransferPinError(msg || "Transfer failed.");
     } finally {
       setTransferLoading(false);
     }
@@ -271,7 +289,7 @@ export default function GiftCardsPage() {
                         </div>
                         <div className="relative">
                           <p className="text-[9px] text-black/30 uppercase tracking-wider">Gift Card Number</p>
-                          <p className="font-mono text-base font-bold tracking-widest text-black/60">{card.code}</p>
+                          <p className="font-mono text-base font-bold tracking-widest text-black/60">{maskGiftCardCode(card.code)}</p>
                         </div>
                       </div>
 
@@ -407,7 +425,7 @@ export default function GiftCardsPage() {
                         Your Gift Card Code
                       </p>
                       <p className="mt-1 font-mono text-2xl font-bold text-primary tracking-wider">
-                        {buySuccess.code}
+                        {maskGiftCardCode(buySuccess.code)}
                       </p>
                       <p className="mt-1 text-sm text-accent font-semibold">
                         Balance: ₹{Number(buySuccess.balance).toLocaleString()}
@@ -575,14 +593,7 @@ export default function GiftCardsPage() {
 
             <div className="p-6">
               {transferMsg && (
-                <div
-                  className={cn(
-                    "mb-4 px-4 py-3 text-sm border",
-                    transferMsg.includes("success")
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                      : "bg-red-50 border-red-200 text-red-700"
-                  )}
-                >
+                <div className="mb-4 px-4 py-3 text-sm border bg-emerald-50 border-emerald-200 text-emerald-700">
                   {transferMsg}
                 </div>
               )}
@@ -599,7 +610,7 @@ export default function GiftCardsPage() {
                   </Button>
                 </div>
               ) : (
-                <form onSubmit={handleTransfer} className="space-y-5 max-w-md">
+                <form onSubmit={handleTransferSubmit} className="space-y-5 max-w-md">
                   <div>
                     <Label className="text-sm font-semibold">Select Card to Transfer</Label>
                     <div className="mt-2 space-y-2">
@@ -626,7 +637,7 @@ export default function GiftCardsPage() {
                               <span className="text-[9px] font-bold text-white/80">{tier[0]}</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-mono text-sm font-semibold">{c.code}</p>
+                              <p className="font-mono text-sm font-semibold">{maskGiftCardCode(c.code)}</p>
                               <p className="text-xs text-muted-foreground">
                                 Balance: ₹{Number(c.balance).toLocaleString()} · Exp:{" "}
                                 {new Date(c.expiry_date).toLocaleDateString()}
@@ -688,9 +699,8 @@ export default function GiftCardsPage() {
                         This action cannot be undone
                       </p>
                       <p className="mt-1">
-                        Card <span className="font-mono font-bold">{selectedCardCode}</span> will
-                        be frozen on your account. A new card with the full balance will be created
-                        for <span className="font-semibold">{recipientEmail}</span>.
+                        Your card will be frozen and a new card created for the recipient with the same
+                        balance for <span className="font-semibold">{recipientEmail}</span>.
                       </p>
                     </motion.div>
                   )}
@@ -717,6 +727,16 @@ export default function GiftCardsPage() {
           </div>
         </motion.div>
       )}
+
+      <PaymentPinEntry
+        open={showTransferPin}
+        onClose={() => { setShowTransferPin(false); setTransferPinError(""); }}
+        onConfirm={handleTransferPinConfirm}
+        title="Enter payment PIN"
+        description="Enter your 6-digit PIN to authorize this transfer."
+        loading={transferLoading}
+        error={transferPinError}
+      />
     </div>
   );
 }

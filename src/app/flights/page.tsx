@@ -127,6 +127,33 @@ function FlightsContent() {
                   </span>
                 )}
               </div>
+              <div className="mt-3">
+                <Link
+                  href={{
+                    pathname: "/",
+                    query: {
+                      origin,
+                      destination,
+                      departure,
+                      return: returnDate || undefined,
+                      passengers,
+                      cabin,
+                    },
+                  }}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-white/90 underline-offset-2 hover:underline"
+                >
+                  <svg
+                    className="h-3 w-3"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0 7.5-7.5M3 12h18" />
+                  </svg>
+                  Modify search
+                </Link>
+              </div>
             </motion.div>
           </div>
         </section>

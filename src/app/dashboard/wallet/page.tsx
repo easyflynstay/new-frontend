@@ -13,6 +13,7 @@ import {
   type WalletTransaction,
 } from "@/services/wallet";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
+import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
 
 function formatDate(iso: string) {
   try {
@@ -38,6 +39,12 @@ export default function WalletPage() {
   const [customAmount, setCustomAmount] = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
+  const [pendingVerify, setPendingVerify] = useState<{
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  } | null>(null);
+  const [pinError, setPinError] = useState("");
 
   const fetchWallet = useCallback(async () => {
     try {
@@ -72,16 +79,12 @@ export default function WalletPage() {
         currency: order.currency,
         userName: user ? `${user.first_name} ${user.last_name}` : undefined,
         userEmail: user?.email,
-        onSuccess: async (res) => {
-          await verifyWalletPayment({
+        onSuccess: (res) => {
+          setPendingVerify({
             razorpay_order_id: res.razorpay_order_id,
             razorpay_payment_id: res.razorpay_payment_id,
             razorpay_signature: res.razorpay_signature,
           });
-          await fetchWallet();
-          setShowAdd(false);
-          setSelectedAmount(null);
-          setCustomAmount("");
         },
         onDismiss: () => setAddLoading(false),
       });
@@ -91,6 +94,27 @@ export default function WalletPage() {
         (err as Error)?.message ||
         "Failed to add funds.";
       setAddError(msg);
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
+  const handlePinConfirm = async (payment_pin: string) => {
+    if (!pendingVerify) return;
+    setPinError("");
+    try {
+      await verifyWalletPayment({
+        ...pendingVerify,
+        payment_pin,
+      });
+      setPendingVerify(null);
+      await fetchWallet();
+      setShowAdd(false);
+      setSelectedAmount(null);
+      setCustomAmount("");
+    } catch (e: unknown) {
+      const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? "Invalid PIN or verification failed.";
+      setPinError(msg);
     } finally {
       setAddLoading(false);
     }
@@ -285,6 +309,16 @@ export default function WalletPage() {
           </motion.div>
         </>
       )}
+
+      <PaymentPinEntry
+        open={!!pendingVerify}
+        onClose={() => { setPendingVerify(null); setPinError(""); setAddLoading(false); }}
+        onConfirm={handlePinConfirm}
+        title="Confirm with payment PIN"
+        description="Enter your 6-digit PIN to add funds to your wallet."
+        loading={addLoading}
+        error={pinError}
+      />
     </div>
   );
 }

@@ -25,6 +25,7 @@ export interface LoginResponse {
   email: string;
   first_name: string;
   last_name: string;
+  has_payment_pin?: boolean;
 }
 
 export interface UserProfile {
@@ -33,6 +34,17 @@ export interface UserProfile {
   first_name: string;
   last_name: string;
   created_at: string;
+  has_payment_pin?: boolean;
+}
+
+export async function setPaymentPin(pin: string): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>("/auth/pin/set", { pin });
+  return data;
+}
+
+export async function verifyPaymentPin(pin: string): Promise<{ valid: boolean }> {
+  const { data } = await api.post<{ valid: boolean }>("/auth/pin/verify", { pin });
+  return data;
 }
 
 export async function signUp(payload: SignUpPayload): Promise<SignUpResponse> {

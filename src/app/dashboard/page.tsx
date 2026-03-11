@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMyGiftCards, type GiftCard } from "@/services/giftcards";
+import { maskGiftCardCode } from "@/lib/utils";
 import { getMyBookings, type MyBookingItem } from "@/services/booking";
 import { getWallet, type WalletTransaction } from "@/services/wallet";
 
@@ -256,7 +257,7 @@ export default function DashboardPage() {
           {giftCards.length > 0 && (
             <div className="mx-4 mb-4 border-2 border-accent/30 bg-accent/5 p-4">
               <p className="text-[10px] font-bold uppercase tracking-wider text-accent">Top Gift Card</p>
-              <p className="mt-1 font-mono text-sm font-bold text-foreground">{giftCards[0].code}</p>
+              <p className="mt-1 font-mono text-sm font-bold text-foreground">{maskGiftCardCode(giftCards[0].code)}</p>
               <div className="mt-2 flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Balance</span>
                 <span className="font-heading font-bold text-accent">₹{Number(giftCards[0].balance).toLocaleString()}</span>

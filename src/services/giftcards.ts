@@ -21,6 +21,7 @@ export interface GiftCardBuyResponse {
 export interface TransferPayload {
   giftcard_code: string;
   recipient_email: string;
+  payment_pin: string;
 }
 
 export interface RenewPayload {

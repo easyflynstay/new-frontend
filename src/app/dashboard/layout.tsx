@@ -1,17 +1,37 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { SetPaymentPinModal } from "@/components/payment/SetPaymentPinModal";
+import { setPaymentPin } from "@/services/auth";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, refreshUser } = useAuth();
   const router = useRouter();
+  const [pinError, setPinError] = useState("");
+  const [pinLoading, setPinLoading] = useState(false);
+  const showSetPin = Boolean(user && !user.has_payment_pin);
+
+  const handleSetPin = async (pin: string) => {
+    setPinError("");
+    setPinLoading(true);
+    try {
+      await setPaymentPin(pin);
+      await refreshUser();
+    } catch (e: unknown) {
+      const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? "Failed to set PIN.";
+      setPinError(msg);
+    } finally {
+      setPinLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -74,6 +94,14 @@ export default function DashboardLayout({
         <DashboardSidebar />
         <div className="flex-1 p-6 md:p-8">{children}</div>
       </div>
+      {showSetPin && (
+        <SetPaymentPinModal
+          open={true}
+          onSet={handleSetPin}
+          loading={pinLoading}
+          error={pinError}
+        />
+      )}
     </div>
   );
 }

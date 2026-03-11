@@ -96,12 +96,33 @@ function BookingCard({
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<MyBookingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchBookings = () => {
+    setLoading(true);
+    setError(null);
+    getMyBookings()
+      .then((list) => {
+        setBookings(list);
+      })
+      .catch((err: unknown) => {
+        const msg = err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { detail?: string }; status?: number } }).response?.data?.detail
+          : (err as Error)?.message;
+        const status = err && typeof err === "object" && "response" in err
+          ? (err as { response?: { status?: number } }).response?.status;
+        if (status === 401) {
+          setError("Please sign in again to view your bookings.");
+        } else {
+          setError(msg && String(msg).trim() ? String(msg) : "Could not load bookings. Please try again.");
+        }
+        setBookings([]);
+      })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    getMyBookings()
-      .then(setBookings)
-      .catch(() => setBookings([]))
-      .finally(() => setLoading(false));
+    fetchBookings();
   }, []);
 
   const upcoming = bookings.filter((b) => b.status === "confirmed");
@@ -117,6 +138,13 @@ export default function BookingsPage() {
       {loading ? (
         <div className="mt-8 flex justify-center">
           <div className="h-10 w-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : error ? (
+        <div className="mt-8 rounded-lg border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800 font-medium">{error}</p>
+          <Button variant="outline" className="mt-4" onClick={fetchBookings}>
+            Try again
+          </Button>
         </div>
       ) : (
         <>

@@ -19,6 +19,7 @@ import { getMyGiftCards, type GiftCard } from "@/services/giftcards";
 import { createBookingOrder, createBooking, type CreateBookingPayload } from "@/services/booking";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
 import { usdToInr, formatInr } from "@/lib/currency";
+import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
 
 const INDIAN_AIRPORTS = new Set([
   "DEL", "BOM", "BLR", "MAA", "CCU", "HYD", "COK", "GOI", "AMD", "TRV", "IXC",
@@ -28,15 +29,6 @@ const INDIAN_AIRPORTS = new Set([
 function isDomestic(from: string, to: string): boolean {
   return INDIAN_AIRPORTS.has((from || "").toUpperCase()) && INDIAN_AIRPORTS.has((to || "").toUpperCase());
 }
-
-const ALL_SEAT_CLASSES = [
-  { id: "economy", label: "Economy", icon: "💺", desc: "Standard comfort" },
-  { id: "premium", label: "Premium Economy", icon: "🪑", desc: "Extra legroom" },
-  { id: "business", label: "Business Class", icon: "✨", desc: "Lie-flat seats" },
-  { id: "first", label: "First Class", icon: "👑", desc: "Private suite" },
-];
-
-const DOMESTIC_SEAT_CLASSES = ALL_SEAT_CLASSES.filter((c) => c.id === "business" || c.id === "first");
 
 function BookingContent() {
   const router = useRouter();
@@ -59,13 +51,12 @@ function BookingContent() {
   const totalAmountUsd = price * parseInt(passengers, 10) || 0;
   const totalAmount = usdToInr(totalAmountUsd);
   const domestic = isDomestic(from, to);
-  const seatClassOptions = domestic ? DOMESTIC_SEAT_CLASSES : ALL_SEAT_CLASSES;
 
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [seatClass, setSeatClass] = useState(domestic ? "business" : cabin);
+  const [seatClass] = useState(domestic ? "business" : cabin);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "giftcard" | null>(null);
   const [giftCardLast4, setGiftCardLast4] = useState("");
   const [userGiftCards, setUserGiftCards] = useState<GiftCard[]>([]);
@@ -73,6 +64,7 @@ function BookingContent() {
   const [trackingLink, setTrackingLink] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [showGiftCardPin, setShowGiftCardPin] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -125,7 +117,7 @@ function BookingContent() {
     }
   };
 
-  const submitBooking = async (giftcardCode?: string, giftcardAmountUsed?: number) => {
+  const submitBooking = async (giftcardCode?: string, giftcardAmountUsed?: number, paymentPin?: string) => {
     const payload: CreateBookingPayload = {
       name: name.trim(),
       email: email.trim(),
@@ -138,25 +130,42 @@ function BookingContent() {
       class: seatClass,
       travelers: passengers,
     };
+    if (user?.customer_id) payload.customerId = user.customer_id;
     if (giftcardCode && giftcardAmountUsed != null) {
       payload.giftcardCode = giftcardCode;
       payload.giftcardAmountUsed = giftcardAmountUsed;
+      if (paymentPin) payload.paymentPin = paymentPin;
     }
-    const res = await createBooking(payload);
-    setBookingId(res.booking_id);
-    if (res.tracking_link) setTrackingLink(res.tracking_link);
-    setStep(4);
+    try {
+      const res = await createBooking(payload);
+      setBookingId(res.booking_id);
+      if (res.tracking_link) setTrackingLink(res.tracking_link);
+      setStep(3);
+    } catch (err: unknown) {
+      const detail = err && typeof err === "object" && "response" in err
+        ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+        : (err as Error)?.message;
+      setPaymentError(detail || "Booking failed.");
+      throw err;
+    }
   };
 
-  const handlePayWithGiftCard = async () => {
+  const handlePayWithGiftCard = () => {
     if (!matchedGiftCard || !giftCardSufficient) {
       setPaymentError("Enter last 4 characters of a gift card with balance ≥ ₹" + totalAmount.toLocaleString() + ".");
       return;
     }
+    setPaymentError("");
+    setShowGiftCardPin(true);
+  };
+
+  const handleGiftCardPinConfirm = async (pin: string) => {
+    if (!matchedGiftCard) return;
     setSubmitLoading(true);
     setPaymentError("");
     try {
-      await submitBooking(matchedGiftCard.code, giftCardToUse);
+      await submitBooking(matchedGiftCard.code, giftCardToUse, pin);
+      setShowGiftCardPin(false);
     } catch (err: unknown) {
       const detail = err && typeof err === "object" && "response" in err
         ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
@@ -278,53 +287,6 @@ function BookingContent() {
                     <div className="flex gap-3 pt-2">
                       <Button variant="outline" onClick={() => router.push("/flights")}>Back to results</Button>
                       <Button variant="accent" className="text-primary" onClick={() => setStep(2)} disabled={!canProceedPassenger}>
-                        Continue to Seat Class
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-
-            {/* Step 2: Seat class */}
-            {step === 2 && (
-              <motion.div
-                key="step2"
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -24 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className={cn("border-2 overflow-hidden", seatClass === "first" && "border-accent")}>
-                  <CardHeader className="bg-primary text-white">
-                    <h2 className="font-heading text-xl font-semibold">Select Seat Class</h2>
-                    <p className="text-sm text-white/80">
-                      {domestic ? "Domestic: Business & First class available" : "Choose your cabin"}
-                    </p>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {seatClassOptions.map((s) => (
-                        <motion.button
-                          key={s.id}
-                          type="button"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setSeatClass(s.id)}
-                          className={cn(
-                            "border-2 p-4 text-left transition-all rounded-sm",
-                            seatClass === s.id ? "border-accent bg-accent/10" : "border-border hover:bg-muted/50"
-                          )}
-                        >
-                          <span className="text-2xl">{s.icon}</span>
-                          <p className="mt-1 font-heading font-semibold">{s.label}</p>
-                          <p className="text-xs text-muted-foreground">{s.desc}</p>
-                        </motion.button>
-                      ))}
-                    </div>
-                    <div className="flex gap-3 mt-6">
-                      <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
-                      <Button variant="accent" className="text-primary" onClick={() => setStep(3)}>
                         Continue to Payment
                       </Button>
                     </div>
@@ -333,8 +295,8 @@ function BookingContent() {
               </motion.div>
             )}
 
-            {/* Step 3: Payment */}
-            {step === 3 && (
+            {/* Step 2: Payment */}
+            {step === 2 && (
               <motion.div
                 key="step3"
                 initial={{ opacity: 0, x: 24 }}
@@ -442,15 +404,15 @@ function BookingContent() {
                     )}
 
                     <div className="flex gap-3 pt-2">
-                      <Button variant="outline" onClick={() => setStep(2)}>Back</Button>
+                      <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
             )}
 
-            {/* Step 4: Confirmation */}
-            {step === 4 && bookingId && (
+            {/* Step 3: Confirmation */}
+            {step === 3 && bookingId && (
               <motion.div
                 key="step4"
                 initial={{ opacity: 0, scale: 0.96 }}
@@ -501,6 +463,15 @@ function BookingContent() {
         </div>
       </main>
       <Footer />
+      <PaymentPinEntry
+        open={showGiftCardPin}
+        onClose={() => setShowGiftCardPin(false)}
+        onConfirm={handleGiftCardPinConfirm}
+        title="Enter payment PIN"
+        description="Enter your 6-digit PIN to pay with your gift card."
+        loading={submitLoading}
+        error={paymentError}
+      />
     </div>
   );
 }

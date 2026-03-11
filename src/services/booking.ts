@@ -13,6 +13,10 @@ export interface CreateBookingPayload {
   travelers: string;
   giftcardCode?: string;
   giftcardAmountUsed?: number;
+  /** Set when user is logged in so the booking appears in My Bookings */
+  customerId?: string;
+  /** Required when paying with gift card: 6-digit payment PIN */
+  paymentPin?: string;
 }
 
 export interface BookingResponse {

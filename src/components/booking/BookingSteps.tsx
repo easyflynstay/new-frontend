@@ -4,9 +4,8 @@ import { cn } from "@/lib/utils";
 
 const steps = [
   { id: 1, label: "Passenger details" },
-  { id: 2, label: "Seat class" },
-  { id: 3, label: "Payment" },
-  { id: 4, label: "Confirmation" },
+  { id: 2, label: "Payment" },
+  { id: 3, label: "Confirmation" },
 ];
 
 export interface BookingStepsProps {

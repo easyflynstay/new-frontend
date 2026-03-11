@@ -37,6 +37,7 @@ export async function verifyWalletPayment(payload: {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
+  payment_pin: string;
 }): Promise<{ balance: number; currency: string; message: string }> {
   const { data } = await api.post("/wallet/verify", payload);
   return data;

@@ -27,6 +27,7 @@ interface AuthContextValue extends AuthState {
   login: (payload: LoginPayload) => Promise<void>;
   signUp: (payload: SignUpPayload) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -67,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       first_name: res.first_name,
       last_name: res.last_name,
       created_at: "",
+      has_payment_pin: res.has_payment_pin ?? false,
     };
     localStorage.setItem("user", JSON.stringify(profile));
     setState({ user: profile, token: res.access_token, loading: false });
@@ -82,8 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ user: null, token: null, loading: false });
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    await hydrateUser();
+  }, [hydrateUser]);
+
   return (
-    <AuthContext.Provider value={{ ...state, login, signUp, logout }}>
+    <AuthContext.Provider value={{ ...state, login, signUp, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
