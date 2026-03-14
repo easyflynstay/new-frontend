@@ -226,10 +226,10 @@ export function ChatWidget() {
           transition={{ duration: 0.2 }}
           className="relative group"
         >
-          {/* Hover tooltip — just above robot, touching the head */}
-          <div className="pointer-events-none absolute bottom-full right-0 z-50 hidden group-hover:block" style={{ transform: 'translateX(calc(-100% + 3rem))' }}>
+          {/* Hover tooltip — just above robot, close to the image */}
+          <div className="pointer-events-none absolute bottom-full left-1/2 z-50 hidden group-hover:block -translate-x-1/2 mb-1">
             <div className="rounded-xl border border-[#0B1F3B]/10 bg-[#0B1F3B] px-4 py-2.5 text-xs font-medium text-white shadow-xl whitespace-nowrap">
-              Book now easily with voice.
+              Book now with ease of voice.
             </div>
           </div>
           <motion.button

@@ -11,3 +11,9 @@ export async function adminMe(): Promise<{ ok: boolean }> {
   const { data } = await api.get<{ ok: boolean }>("/admin/me", { withCredentials: true });
   return data;
 }
+
+/** Clear admin session (logout). Call with credentials so cookie is sent and cleared. */
+export async function adminLogout(): Promise<{ ok: boolean }> {
+  const { data } = await api.post<{ ok: boolean }>("/admin/logout", {}, { withCredentials: true });
+  return data;
+}

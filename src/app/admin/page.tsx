@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { adminUpdatePnr, adminUploadTicket } from "@/services/booking";
-import { adminLogin, adminMe } from "@/services/admin";
+import { adminLogin, adminLogout, adminMe } from "@/services/admin";
 
 export default function AdminPage() {
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -170,12 +170,25 @@ export default function AdminPage() {
     );
   }
 
+  const handleLogout = async () => {
+    try {
+      await adminLogout();
+    } finally {
+      setIsLoggedIn(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 px-4 py-12">
         <div className="mx-auto max-w-2xl space-y-8">
-          <h1 className="font-heading text-2xl font-bold text-primary">Admin</h1>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <h1 className="font-heading text-2xl font-bold text-primary">Admin</h1>
+            <Button type="button" variant="outline" onClick={handleLogout} className="text-red-600 border-red-200 hover:bg-red-50">
+              Logout
+            </Button>
+          </div>
 
           <Card className="border-2">
             <CardHeader className="bg-primary text-white">

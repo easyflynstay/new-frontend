@@ -16,7 +16,6 @@ const navLinks = [
   { href: "/blog", label: "BLOG" },
   { href: "/about", label: "ABOUT" },
   { href: "/contact", label: "CONTACT" },
-  { href: "/admin", label: "ADMIN LOGIN" },
 ];
 
 export function Navbar() {
@@ -52,6 +51,7 @@ export function Navbar() {
             <span className="hidden sm:inline font-medium">PREMIUM TRAVEL EXPERIENCE</span>
             <span className="hidden sm:inline font-medium">24/7 CONCIERGE</span>
             <span className="font-semibold text-accent">+91 63 66 02 88 63</span>
+            <Link href="/admin" className="ml-auto font-medium text-primary hover:underline">Admin Login</Link>
           </div>
         </div>
       </div>
