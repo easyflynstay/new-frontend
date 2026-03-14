@@ -86,6 +86,18 @@ function SummaryRow({
   );
 }
 
+/** True only when all five booking fields are present (show booking details only then). */
+function isBookingComplete(state: UserState | undefined): boolean {
+  if (!state) return false;
+  return Boolean(
+    state.origin &&
+      state.destination &&
+      state.departure &&
+      state.passengers &&
+      state.cabin
+  );
+}
+
 /** Trip summary card: one row below the other, headers (From – To, Date, etc.), greyish transparent background. */
 function TripSummary({ userState }: { userState: UserState }) {
   const route = userState.origin && userState.destination
@@ -165,10 +177,18 @@ export function ChatWindow({
   const lastMsg = messages[messages.length - 1];
   const isLastEmptyAssistant =
     isLoading && lastMsg?.role === "assistant" && (lastMsg?.content ?? "") === "";
-  // Show only user messages; each is followed by its booking-details snapshot so old and new UIs persist.
-  const messagesToShow = (isLastEmptyAssistant ? messages.slice(0, -1) : messages).filter(
-    (msg) => msg.role === "user"
-  );
+
+  // Build turns: each turn is (user, assistant) + optional snapshot. Show LLM responses except when
+  // search button is enabled — then hide the last assistant message so we show search UI instead.
+  const turns: { user: ChatMessageData; assistant: ChatMessageData | null; snapshot: UserState | undefined }[] = [];
+  for (let i = 0; i < messages.length; i += 2) {
+    const userMsg = messages[i];
+    const assistantMsg = messages[i + 1] ?? null;
+    if (userMsg?.role !== "user") break;
+    const snapshot = userStateSnapshots[turns.length];
+    turns.push({ user: userMsg, assistant: assistantMsg?.role === "assistant" ? assistantMsg : null, snapshot });
+  }
+  const lastTurnIndex = turns.length - 1;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -228,15 +248,16 @@ export function ChatWindow({
           className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 sm:px-3 md:px-4 pb-2"
           style={{ scrollbarGutter: "stable" }}
         >
-          {messagesToShow.map((msg, idx) => (
+          {turns.map((turn, idx) => (
             <React.Fragment key={idx}>
-              <ChatMessage message={msg} />
-              {userStateSnapshots[idx] &&
-                (userStateSnapshots[idx].origin ||
-                  userStateSnapshots[idx].destination ||
-                  userStateSnapshots[idx].departure ||
-                  userStateSnapshots[idx].passengers ||
-                  userStateSnapshots[idx].cabin) ? (
+              <ChatMessage message={turn.user} />
+              {/* Show assistant (LLM) response unless search button is enabled on the last turn; hide empty last bubble while loading */}
+              {turn.assistant &&
+                !(isSearchReady && idx === lastTurnIndex) &&
+                (idx !== lastTurnIndex || (turn.assistant.content ?? "") !== "" || !isLoading) ? (
+                <ChatMessage message={turn.assistant} />
+              ) : null}
+              {turn.snapshot && isBookingComplete(turn.snapshot) ? (
                 <div className="mt-4 mb-1 px-1">
                   <p
                     className="text-[11px] uppercase font-semibold tracking-[0.12em] mb-2"
@@ -244,7 +265,7 @@ export function ChatWindow({
                   >
                     Booking details
                   </p>
-                  <TripSummary userState={userStateSnapshots[idx]} />
+                  <TripSummary userState={turn.snapshot} />
                 </div>
               ) : null}
             </React.Fragment>
