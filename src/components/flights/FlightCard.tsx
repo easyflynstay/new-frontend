@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -22,6 +22,8 @@ interface Segment {
   arrivalTerminal: string;
   duration: string;
   stops: number;
+  /** Layover duration after this segment (e.g. "1h 15m") at arrivalAirport. */
+  layoverAfter?: string;
 }
 
 interface ReturnFlight {
@@ -303,7 +305,15 @@ export function FlightCard({
                     Outbound · {segments.length} segment{segments.length > 1 ? "s" : ""}
                   </p>
                   {segments.map((seg, i) => (
-                    <SegmentDetail key={`out-${i}`} seg={seg} idx={i} />
+                    <React.Fragment key={`out-${i}`}>
+                      <SegmentDetail seg={seg} idx={i} />
+                      {seg.layoverAfter && (
+                        <div className="flex items-center gap-2 py-2 pl-11 text-sm font-semibold text-foreground">
+                          <span className="text-muted-foreground font-medium">Layover at {seg.arrivalAirport}</span>
+                          <span>{seg.layoverAfter}</span>
+                        </div>
+                      )}
+                    </React.Fragment>
                   ))}
                   {returnFlight && returnFlight.segments.length > 0 && (
                     <>
@@ -312,7 +322,15 @@ export function FlightCard({
                         Return · {returnFlight.segments.length} segment{returnFlight.segments.length > 1 ? "s" : ""}
                       </p>
                       {returnFlight.segments.map((seg, i) => (
-                        <SegmentDetail key={`ret-${i}`} seg={seg} idx={i} />
+                        <React.Fragment key={`ret-${i}`}>
+                          <SegmentDetail seg={seg} idx={i} />
+                          {seg.layoverAfter && (
+                            <div className="flex items-center gap-2 py-2 pl-11 text-sm font-semibold text-foreground">
+                              <span className="text-muted-foreground font-medium">Layover at {seg.arrivalAirport}</span>
+                              <span>{seg.layoverAfter}</span>
+                            </div>
+                          )}
+                        </React.Fragment>
                       ))}
                     </>
                   )}

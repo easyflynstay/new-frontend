@@ -56,7 +56,9 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
-      setError("Contact form is not configured. Please set EmailJS environment variables.");
+      setError(
+        "Contact form is not configured. Add NEXT_PUBLIC_EMAILJS_SERVICE_ID, NEXT_PUBLIC_EMAILJS_TEMPLATE_ID, and NEXT_PUBLIC_EMAILJS_PUBLIC_KEY to the frontend .env.local, then restart the dev server (or rebuild and redeploy for production)."
+      );
       return;
     }
     setError(null);

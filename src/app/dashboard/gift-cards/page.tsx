@@ -22,8 +22,8 @@ import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
 function tierFromAmount(amount: number) {
   if (amount >= 250000) return { tier: "Signature", gradient: "from-gray-900 via-gray-800 to-gray-900", textColor: "text-gray-100" };
   if (amount >= 100000) return { tier: "Elite", gradient: "from-amber-400 via-yellow-300 to-amber-500", textColor: "text-amber-950" };
-  if (amount >= 50000) return { tier: "Prime", gradient: "from-slate-300 via-slate-200 to-slate-400", textColor: "text-slate-700" };
-  return { tier: "Custom", gradient: "from-slate-300 via-slate-200 to-slate-400", textColor: "text-slate-700" };
+  // Prime: 50k+ and also under 50k (all below Elite)
+  return { tier: "Prime", gradient: "from-slate-300 via-slate-200 to-slate-400", textColor: "text-slate-700" };
 }
 
 const presetAmounts = [1000, 5000, 10000, 25000, 50000, 100000];
@@ -201,7 +201,8 @@ export default function GiftCardsPage() {
               "flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-px",
               activeTab === tab.id
                 ? "border-accent text-accent"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+              tab.id === "transfer" && "hidden"
             )}
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -332,7 +333,7 @@ export default function GiftCardsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="flex-1 text-xs"
+                              className="flex-1 text-xs hidden"
                               onClick={() => {
                                 setSelectedCardCode(card.code);
                                 setActiveTab("transfer");
@@ -580,7 +581,7 @@ export default function GiftCardsPage() {
         </motion.div>
       )}
 
-      {/* ── Transfer ── */}
+      {/* ── Transfer (tab and card button are hidden; code kept for future use) ── */}
       {activeTab === "transfer" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6">
           <div className="border border-border bg-white shadow-card overflow-hidden">
