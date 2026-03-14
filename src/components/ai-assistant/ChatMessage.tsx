@@ -124,8 +124,8 @@ export function ChatMessage({ message }: { message: ChatMessageData }) {
 
   const bubbleStyle: React.CSSProperties = {
     maxWidth: "92%",
-    fontSize: "clamp(14px, 2.5vw + 12px, 15px)",
-    lineHeight: 1.625,
+    fontSize: "clamp(11px, 1.5vw + 10px, 13px)",
+    lineHeight: 1.5,
     border: `1px solid ${COLORS.borderPlum}`,
     boxShadow: "0 4px 16px rgba(11, 31, 59, 0.18), 0 2px 8px rgba(0,0,0,0.08)",
   };

@@ -10,6 +10,114 @@ import { COLORS } from "@/lib/theme";
 import { SARVAM_LANGUAGE_DROPDOWN_OPTIONS } from "@/lib/languageMapper";
 import type { ChatMessageData, UserState } from "./types";
 
+/** Format YYYY-MM-DD for display (e.g. "Apr 17, 2026"). */
+function formatDeparture(iso: string | undefined): string {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso + "T12:00:00");
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return iso;
+  }
+}
+
+/** Simple SVG icons for trip summary (calendar, people, plane) – compact size. */
+const iconSize = 14;
+const IconCalendar = () => (
+  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+const IconPeople = () => (
+  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+const IconPlane = () => (
+  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2l-1.8-8.2L16 11l-1.8 8.2z" />
+  </svg>
+);
+const IconRoute = () => (
+  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="6" cy="12" r="2" />
+    <circle cx="18" cy="12" r="2" />
+    <path d="M8 12h8" />
+    <path d="m12 10 2 2-2 2" />
+  </svg>
+);
+
+/** Row with header + value, optional icon. Renders only when value is present. */
+function SummaryRow({
+  header,
+  value,
+  icon: Icon,
+}: { header: string; value: string; icon?: () => JSX.Element }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-center gap-2 py-1.5 first:pt-0 border-b border-[rgba(0,0,0,0.06)] last:border-b-0 last:pb-0">
+      {Icon ? (
+        <span className="flex-shrink-0 text-[#0B1F3B]/65" aria-hidden>
+          <Icon />
+        </span>
+      ) : null}
+      <div className="min-w-0 flex-1">
+        <div
+          className="text-[11px] uppercase font-semibold"
+          style={{
+            color: "rgba(11, 31, 59, 0.72)",
+            letterSpacing: "0.12em",
+          }}
+        >
+          {header}
+        </div>
+        <div className="text-xs font-medium mt-0.5" style={{ color: COLORS.textDark }}>
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Trip summary card: one row below the other, headers (From – To, Date, etc.), greyish transparent background. */
+function TripSummary({ userState }: { userState: UserState }) {
+  const route = userState.origin && userState.destination
+    ? `${userState.origin} → ${userState.destination}`
+    : null;
+  const departure = userState.departure ? formatDeparture(userState.departure) : null;
+  const passengers = userState.passengers
+    ? `${userState.passengers} passenger${userState.passengers !== "1" ? "s" : ""}`
+    : null;
+  const cabin = userState.cabin || null;
+
+  if (!route && !departure && !passengers && !cabin) return null;
+
+  return (
+    <div
+      className="rounded-xl overflow-hidden mb-2 border max-w-[320px]"
+      style={{
+        background: "rgba(120, 120, 128, 0.08)",
+        borderColor: "rgba(0, 0, 0, 0.08)",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+      }}
+    >
+      <div className="px-3 py-2 sm:px-3.5 sm:py-2.5">
+        <SummaryRow header="From – To" value={route ?? ""} icon={IconRoute} />
+        <SummaryRow header="Date" value={departure ?? ""} icon={IconCalendar} />
+        <SummaryRow header="Passengers" value={passengers ?? ""} icon={IconPeople} />
+        <SummaryRow header="Cabin" value={cabin ?? ""} icon={IconPlane} />
+      </div>
+    </div>
+  );
+}
+
 const CHAT_BG = `
   radial-gradient(
     ellipse 120% 55% at 100% 100%,
@@ -27,6 +135,8 @@ interface ChatWindowProps {
   messages: ChatMessageData[];
   isLoading: boolean;
   userState: UserState | null;
+  /** One snapshot per user message so initial and updated booking UIs both persist. */
+  userStateSnapshots: UserState[];
   isSearchReady: boolean;
   onSend: (text: string) => void;
   onRestart?: () => void;
@@ -40,6 +150,7 @@ export function ChatWindow({
   messages,
   isLoading,
   userState,
+  userStateSnapshots,
   isSearchReady,
   onSend,
   onRestart,
@@ -54,7 +165,10 @@ export function ChatWindow({
   const lastMsg = messages[messages.length - 1];
   const isLastEmptyAssistant =
     isLoading && lastMsg?.role === "assistant" && (lastMsg?.content ?? "") === "";
-  const messagesToShow = isLastEmptyAssistant ? messages.slice(0, -1) : messages;
+  // Show only user messages; each is followed by its booking-details snapshot so old and new UIs persist.
+  const messagesToShow = (isLastEmptyAssistant ? messages.slice(0, -1) : messages).filter(
+    (msg) => msg.role === "user"
+  );
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -71,29 +185,13 @@ export function ChatWindow({
       }}
     >
       <header className="flex-shrink-0 flex items-center justify-between w-full px-3 py-2.5 sm:px-4 sm:py-3 gap-2 sm:gap-4">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#0B1F3B]/40 bg-white">
-            <Image
-              src="/robot-chat.png"
-              alt=""
-              width={36}
-              height={36}
-              className="h-9 w-9 object-cover object-center"
-              style={{ mixBlendMode: "lighten" }}
-            />
-          </div>
+        <div className="flex items-center min-w-0 flex-1">
           <Image
-            src="/logo.svg"
+            src="/logo-full.svg"
             alt="EasyFlyNStay"
-            width={100}
-            height={28}
-            className="object-contain shrink-0"
-            style={{
-              maxHeight: "28px",
-              width: "auto",
-              height: "auto",
-              filter: "brightness(0) saturate(100%) opacity(0.82)",
-            }}
+            width={200}
+            height={50}
+            className="object-contain shrink-0 h-9 sm:h-10 w-auto"
           />
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
@@ -131,7 +229,25 @@ export function ChatWindow({
           style={{ scrollbarGutter: "stable" }}
         >
           {messagesToShow.map((msg, idx) => (
-            <ChatMessage key={idx} message={msg} />
+            <React.Fragment key={idx}>
+              <ChatMessage message={msg} />
+              {userStateSnapshots[idx] &&
+                (userStateSnapshots[idx].origin ||
+                  userStateSnapshots[idx].destination ||
+                  userStateSnapshots[idx].departure ||
+                  userStateSnapshots[idx].passengers ||
+                  userStateSnapshots[idx].cabin) ? (
+                <div className="mt-4 mb-1 px-1">
+                  <p
+                    className="text-[11px] uppercase font-semibold tracking-[0.12em] mb-2"
+                    style={{ color: COLORS.plum }}
+                  >
+                    Booking details
+                  </p>
+                  <TripSummary userState={userStateSnapshots[idx]} />
+                </div>
+              ) : null}
+            </React.Fragment>
           ))}
           {isLoading ? <LoadingIndicator /> : null}
           {isSearchReady && userState ? (

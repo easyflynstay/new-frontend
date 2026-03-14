@@ -20,6 +20,8 @@ export function ChatWidget() {
   );
   const [languageCode, setLanguageCode] = useState(DEFAULT_LANGUAGE_CODE);
   const [userState, setUserState] = useState<UserState | null>(null);
+  /** One booking-details snapshot per user message, so initial and updated UIs both persist. */
+  const [userStateSnapshots, setUserStateSnapshots] = useState<UserState[]>([]);
   const [isSearchReady, setIsSearchReady] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const streamInProgressRef = useRef(false);
@@ -109,6 +111,7 @@ export function ChatWidget() {
             if (parsed.done) {
               if (parsed.user_state) {
                 setUserState(parsed.user_state);
+                setUserStateSnapshots((prev) => [...prev, parsed.user_state!]);
                 const { origin, destination, departure, passengers, cabin } =
                   parsed.user_state;
                 setIsSearchReady(
@@ -188,6 +191,7 @@ export function ChatWidget() {
     setIsLoading(false);
     setSessionId(typeof crypto !== "undefined" ? crypto.randomUUID() : "");
     setUserState(null);
+    setUserStateSnapshots([]);
     setIsSearchReady(false);
   }, [sessionId]);
 
@@ -276,6 +280,7 @@ export function ChatWidget() {
                 messages={messages}
                 isLoading={isLoading}
                 userState={userState}
+                userStateSnapshots={userStateSnapshots}
                 isSearchReady={isSearchReady}
                 onSend={handleSend}
                 onRestart={messages.length > 0 ? handleRestart : undefined}

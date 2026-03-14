@@ -18,13 +18,13 @@ const DETAILS_ITEMS = [
   "**Destination** — where you're flying to",
   "**Departure** — your departure date",
   "**Passengers** — number of passengers",
-  "**Cabin** — cabin class (e.g. Economy, Business)",
+  "**Cabin** — cabin class (Economy, Business,First,Premium Economy)",
 ];
 
 const bubbleStyle: React.CSSProperties = {
   maxWidth: "92%",
-  fontSize: "clamp(14px, 2.5vw + 12px, 15px)",
-  lineHeight: 1.625,
+  fontSize: "clamp(11px, 1.5vw + 10px, 13px)",
+  lineHeight: 1.5,
   border: `1px solid ${COLORS.borderPlum}`,
   boxShadow: "0 4px 20px rgba(11, 31, 59, 0.2), 0 2px 8px rgba(0,0,0,0.15)",
 };
@@ -55,7 +55,7 @@ export function WelcomeMessage() {
             <span
               className="font-serif"
               style={{
-                color: COLORS.plumDark,
+                color: COLORS.plum,
                 fontWeight: 600,
                 letterSpacing: "0.01em",
               }}
@@ -105,7 +105,7 @@ export function WelcomeMessage() {
                     {parts.length >= 3 ? (
                       <>
                         {parts[0]}
-                        <strong style={{ color: COLORS.plumDark }}>
+                        <strong style={{ color: COLORS.plum }}>
                           {parts[1]}
                         </strong>
                         {parts[2]}
