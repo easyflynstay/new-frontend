@@ -66,3 +66,19 @@ export async function getMe(): Promise<UserProfile> {
   const { data } = await api.get<UserProfile>("/auth/me");
   return data;
 }
+
+/** Request a password reset email. Backend sends link if account exists. */
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>("/auth/forgot-password", { email });
+  return data;
+}
+
+/** Set new password using token from reset email. */
+export async function resetPassword(token: string, newPassword: string, confirmPassword: string): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>("/auth/reset-password", {
+    token,
+    new_password: newPassword,
+    confirm_password: confirmPassword,
+  });
+  return data;
+}

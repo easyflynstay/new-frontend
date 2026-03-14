@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { adminUpdatePnr, adminUploadTicket } from "@/services/booking";
 import { adminLogin, adminLogout, adminMe } from "@/services/admin";
 
-export default function AdminPage() {
+export function AdminPanel() {
   const [sessionLoading, setSessionLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 

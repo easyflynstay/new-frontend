@@ -12,14 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { forgotPassword } from "@/services/auth";
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   const router = useRouter();
-  const { login, user } = useAuth();
+  const { user } = useAuth();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
 
   if (user) {
     router.replace("/dashboard");
@@ -31,12 +32,12 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login({ email, password });
-      router.push("/dashboard");
+      await forgotPassword(email.trim());
+      setSent(true);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail || "Login failed. Please try again.";
+          ?.detail || "Something went wrong. Please try again.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -50,7 +51,7 @@ export default function LoginPage() {
         <div className="hidden lg:block lg:w-1/2 relative">
           <Image
             src="https://images.unsplash.com/photo-1540339832862-474599807836?w=800&h=1000&fit=crop"
-            alt="First class cabin"
+            alt="Travel"
             fill
             className="object-cover"
           />
@@ -67,8 +68,8 @@ export default function LoginPage() {
                   <span className="font-heading text-3xl font-bold text-primary">E</span>
                 </div>
               </div>
-              <h2 className="font-heading text-3xl font-bold">Welcome Back</h2>
-              <p className="mt-3 text-white/80 max-w-sm">Sign in to access your bookings, wallet, and exclusive travel deals with Easyflynstay.</p>
+              <h2 className="font-heading text-3xl font-bold">Reset your password</h2>
+              <p className="mt-3 text-white/80 max-w-sm">Enter your email and we&apos;ll send you a link to set a new password.</p>
             </motion.div>
           </div>
         </div>
@@ -87,38 +88,46 @@ export default function LoginPage() {
                     <span className="font-heading text-xl font-bold text-accent">E</span>
                   </div>
                 </div>
-                <h1 className="font-heading text-2xl font-semibold text-foreground">Sign in</h1>
-                <p className="text-sm text-muted-foreground">Enter your credentials to access your account.</p>
+                <h1 className="font-heading text-2xl font-semibold text-foreground">Forgot password</h1>
+                <p className="text-sm text-muted-foreground">Enter the email linked to your account.</p>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
-                      {error}
+                {sent ? (
+                  <div className="space-y-4">
+                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm">
+                      If an account exists for this email, we&apos;ve sent a link to reset your password. Check your inbox and spam folder.
                     </div>
-                  )}
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1" required />
+                    <Link href="/login">
+                      <Button variant="accent" className="w-full text-primary">Back to Sign in</Button>
+                    </Link>
                   </div>
-                  <div>
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" required />
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" className="h-4 w-4 border-border" />
-                      <span className="text-muted-foreground">Remember me</span>
-                    </label>
-                    <Link href="/forgot-password" className="text-accent hover:underline">Forgot password?</Link>
-                  </div>
-                  <Button type="submit" variant="accent" className="w-full text-primary" disabled={loading}>
-                    {loading ? "Signing in..." : "Sign in"}
-                  </Button>
-                  <p className="text-center text-sm text-muted-foreground">
-                    Don&apos;t have an account? <Link href="/signup" className="font-medium text-accent hover:underline">Sign up</Link>
-                  </p>
-                </form>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    {error && (
+                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
+                        {error}
+                      </div>
+                    )}
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="mt-1"
+                        required
+                      />
+                    </div>
+                    <Button type="submit" variant="accent" className="w-full text-primary" disabled={loading}>
+                      {loading ? "Sending…" : "Send reset link"}
+                    </Button>
+                    <p className="text-center text-sm text-muted-foreground">
+                      <Link href="/login" className="font-medium text-accent hover:underline">Back to Sign in</Link>
+                    </p>
+                  </form>
+                )}
               </CardContent>
             </Card>
           </motion.div>
