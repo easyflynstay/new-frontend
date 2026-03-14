@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { ChatContainer } from "@/components/chat/ChatContainer";
 
 export function ChatFloatingButton() {
@@ -21,7 +22,7 @@ export function ChatFloatingButton() {
             }}
             aria-label="Open EasyFlyNStay chat assistant"
           >
-            <img src="/logo.svg" alt="" className="h-8 w-8 object-contain" />
+            <Image src="/logo.svg" alt="" width={32} height={32} className="h-8 w-8 object-contain" />
           </button>
           {/* Tooltip */}
           <div className="pointer-events-none absolute right-full top-1/2 z-40 hidden -translate-y-1/2 pr-3 group-hover:block">

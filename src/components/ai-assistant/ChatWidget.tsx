@@ -96,7 +96,7 @@ export function ChatWidget() {
         const decoder = new TextDecoder();
         let buffer = "";
 
-        function processLine(trimmed: string): boolean {
+        const processLine = (trimmed: string): boolean => {
           if (!trimmed.startsWith("data:")) return false;
           const jsonStr = trimmed.slice(5).trim();
           if (!jsonStr) return false;
@@ -128,7 +128,7 @@ export function ChatWidget() {
             // skip malformed JSON
           }
           return false;
-        }
+        };
 
         while (true) {
           const { done, value } = await reader.read();

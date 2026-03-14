@@ -154,7 +154,7 @@ export function ChatContainer({ mode = "page", onSearchFlights }: ChatContainerP
         abortRef.current = null;
       }
     },
-    [appendToLastAssistant, sessionId]
+    [appendToLastAssistant, sessionId, fetchExtractedParams]
   );
 
   const handleSend = useCallback(

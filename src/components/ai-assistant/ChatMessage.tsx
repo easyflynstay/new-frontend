@@ -49,9 +49,9 @@ const markdownComponents: React.ComponentProps<typeof ReactMarkdown>["components
       style={{
         fontFamily: "ui-monospace, monospace",
         fontSize: "0.875rem",
-        background: "rgba(92, 43, 60, 0.06)",
+        background: "rgba(11, 31, 59, 0.06)",
         color: COLORS.textDark,
-        border: `1px solid ${plumBorder}`,
+        border: `1px solid ${themeBorder}`,
         borderRadius: "8px",
         padding: "0.75rem 1rem",
         overflowX: "auto",

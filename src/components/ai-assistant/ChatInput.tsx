@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { COLORS } from "@/lib/theme";
 
@@ -206,9 +207,11 @@ export function ChatInput({
             style={{ opacity: !value.trim() || disabled ? 0.5 : 1 }}
             aria-label="Send message"
           >
-            <img
+            <Image
               src="/send.svg"
               alt="Send"
+              width={36}
+              height={36}
               className="w-8 h-8 sm:w-9 sm:h-9 object-contain"
             />
           </button>
