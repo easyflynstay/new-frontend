@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import emailjs from "@emailjs/browser";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -37,7 +39,53 @@ const contactInfo = [
   },
 ];
 
+const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID ?? "";
+const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID ?? "";
+const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ?? "";
+
 export default function ContactPage() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
+      setError("Contact form is not configured. Please set EmailJS environment variables.");
+      return;
+    }
+    setError(null);
+    setSending(true);
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          from_name: `${firstName.trim()} ${lastName.trim()}`.trim() || "Contact form",
+          from_email: email.trim(),
+          phone: phone.trim(),
+          message: message.trim(),
+        },
+        { publicKey: EMAILJS_PUBLIC_KEY }
+      );
+      setSent(true);
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPhone("");
+      setMessage("");
+    } catch (err) {
+      setError((err as Error).message || "Failed to send message. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -100,20 +148,38 @@ export default function ContactPage() {
                   <h2 className="font-heading text-lg font-semibold">Send us a message</h2>
                 </CardHeader>
                 <CardContent className="space-y-4 p-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div><Label>First name</Label><Input className="mt-1" placeholder="John" /></div>
-                    <div><Label>Last name</Label><Input className="mt-1" placeholder="Smith" /></div>
-                  </div>
-                  <div><Label>Email</Label><Input type="email" className="mt-1" placeholder="you@example.com" /></div>
-                  <div><Label>Phone</Label><Input type="tel" className="mt-1" placeholder="+1 (555) 000-0000" /></div>
-                  <div>
-                    <Label>Message</Label>
-                    <textarea
-                      className="mt-1 w-full border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[120px]"
-                      placeholder="Tell us about your travel plans..."
-                    />
-                  </div>
-                  <Button variant="accent" className="w-full text-primary">Send Message</Button>
+                  {sent && (
+                    <div className="rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 px-4 py-3 text-sm">
+                      Thank you! Your message has been sent. We&apos;ll get back to you soon.
+                    </div>
+                  )}
+                  {error && (
+                    <div className="rounded-lg bg-red-50 text-red-700 border border-red-200 px-4 py-3 text-sm">
+                      {error}
+                    </div>
+                  )}
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><Label htmlFor="contact-first">First name</Label><Input id="contact-first" className="mt-1" placeholder="John" value={firstName} onChange={(e) => setFirstName(e.target.value)} /></div>
+                      <div><Label htmlFor="contact-last">Last name</Label><Input id="contact-last" className="mt-1" placeholder="Smith" value={lastName} onChange={(e) => setLastName(e.target.value)} /></div>
+                    </div>
+                    <div><Label htmlFor="contact-email">Email</Label><Input id="contact-email" type="email" className="mt-1" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+                    <div><Label htmlFor="contact-phone">Phone</Label><Input id="contact-phone" type="tel" className="mt-1" placeholder="+1 (555) 000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
+                    <div>
+                      <Label htmlFor="contact-message">Message</Label>
+                      <textarea
+                        id="contact-message"
+                        className="mt-1 w-full border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[120px] rounded-md"
+                        placeholder="Tell us about your travel plans..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" variant="accent" className="w-full text-primary" disabled={sending}>
+                      {sending ? "Sending…" : "Send Message"}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             </SectionReveal>

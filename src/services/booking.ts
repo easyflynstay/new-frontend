@@ -127,9 +127,11 @@ export async function adminUploadTicket(
   return data;
 }
 
-/** URL to download the attached ticket for a booking (optional email for verification). */
+/** URL to download the attached ticket. Uses full API URL when set so the request hits the backend that has the file. */
 export function getTicketDownloadUrl(bookingId: string, email?: string): string {
-  const path = `/api/booking/${encodeURIComponent(bookingId)}/ticket`;
   const params = email ? `?email=${encodeURIComponent(email)}` : "";
-  return path + params;
+  const pathAndQuery = `/api/booking/${encodeURIComponent(bookingId)}/ticket${params}`;
+  const base = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") : "";
+  if (base) return `${base}${pathAndQuery}`;
+  return pathAndQuery;
 }

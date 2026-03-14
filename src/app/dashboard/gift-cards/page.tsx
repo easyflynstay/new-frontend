@@ -22,10 +22,11 @@ import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
 function tierFromAmount(amount: number) {
   if (amount >= 250000) return { tier: "Signature", gradient: "from-gray-900 via-gray-800 to-gray-900", textColor: "text-gray-100" };
   if (amount >= 100000) return { tier: "Elite", gradient: "from-amber-400 via-yellow-300 to-amber-500", textColor: "text-amber-950" };
-  return { tier: "Prime", gradient: "from-slate-300 via-slate-200 to-slate-400", textColor: "text-slate-700" };
+  if (amount >= 50000) return { tier: "Prime", gradient: "from-slate-300 via-slate-200 to-slate-400", textColor: "text-slate-700" };
+  return { tier: "Custom", gradient: "from-slate-300 via-slate-200 to-slate-400", textColor: "text-slate-700" };
 }
 
-const presetAmounts = [50000, 100000, 200000, 250000, 500000];
+const presetAmounts = [1000, 5000, 10000, 25000, 50000, 100000];
 
 export default function GiftCardsPage() {
   const { user } = useAuth();
@@ -72,8 +73,8 @@ export default function GiftCardsPage() {
   const handleBuy = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(buyAmount);
-    if (!amount || amount < 50000) {
-      setBuyError("Please enter a valid amount (min ₹50,000 for Prime tier).");
+    if (!amount || amount < 1) {
+      setBuyError("Please enter a valid amount (minimum ₹1).");
       return;
     }
     setBuyLoading(true);
@@ -468,7 +469,7 @@ export default function GiftCardsPage() {
                       </div>
                     )}
 
-                    <Label className="text-sm font-semibold">Select Amount (₹)</Label>
+                    <Label className="text-sm font-semibold">Enter amount (₹)</Label>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {presetAmounts.map((amt) => (
                         <button
@@ -488,18 +489,18 @@ export default function GiftCardsPage() {
                     </div>
 
                     <div className="mt-4">
-                      <Label className="text-xs text-muted-foreground">Or enter custom amount</Label>
+                      <Label className="text-xs text-muted-foreground">Or enter custom amount (no minimum)</Label>
                       <div className="relative mt-1">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
                           ₹
                         </span>
                         <Input
                           type="number"
-                          min="50000"
+                          min="1"
                           step="1"
                           value={buyAmount}
                           onChange={(e) => setBuyAmount(e.target.value)}
-                          placeholder="e.g. 50000, 100000"
+                          placeholder="Any amount"
                           className="pl-8 h-12 text-lg font-semibold"
                         />
                       </div>
