@@ -156,6 +156,8 @@ interface ChatWindowProps {
   languageCode: string;
   onLanguageChange: (code: string) => void;
   onSearchFlights?: () => void;
+  /** Shown when Search flights is clicked but required fields are missing or invalid. */
+  searchError?: string | null;
 }
 
 export function ChatWindow({
@@ -170,13 +172,10 @@ export function ChatWindow({
   languageCode,
   onLanguageChange,
   onSearchFlights,
+  searchError,
 }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasMessages = messages.length > 0;
-
-  const lastMsg = messages[messages.length - 1];
-  const isLastEmptyAssistant =
-    isLoading && lastMsg?.role === "assistant" && (lastMsg?.content ?? "") === "";
 
   // Build turns: each turn is (user, assistant) + optional snapshot. Show LLM responses except when
   // search button is enabled — then hide the last assistant message so we show search UI instead.
@@ -272,7 +271,12 @@ export function ChatWindow({
           ))}
           {isLoading ? <LoadingIndicator /> : null}
           {isSearchReady && userState ? (
-            <div className="flex justify-center mt-3 mb-2 px-1">
+            <div className="flex flex-col items-center mt-3 mb-2 px-1 gap-2">
+              {searchError ? (
+                <p className="text-xs text-red-600 text-center max-w-sm" role="alert">
+                  {searchError}
+                </p>
+              ) : null}
               <button
                 type="button"
                 onClick={onSearchFlights}

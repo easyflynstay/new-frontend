@@ -23,6 +23,7 @@ export function ChatWidget() {
   /** One booking-details snapshot per user message, so initial and updated UIs both persist. */
   const [userStateSnapshots, setUserStateSnapshots] = useState<UserState[]>([]);
   const [isSearchReady, setIsSearchReady] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const streamInProgressRef = useRef(false);
 
@@ -169,6 +170,7 @@ export function ChatWidget() {
   const handleSend = useCallback(
     (text: string) => {
       if (!text.trim()) return;
+      setSearchError(null);
       const userMsg: ChatMessageData = { role: "user", content: text.trim() };
       const assistantPlaceholder: ChatMessageData = { role: "assistant", content: "" };
       setMessages((prev) => {
@@ -196,13 +198,41 @@ export function ChatWidget() {
   }, [sessionId]);
 
   const handleSearchFlights = useCallback(() => {
-    if (!userState) return;
+    setSearchError(null);
+    if (!userState) {
+      setSearchError("Booking details are missing. Please share your origin, destination, and travel date in the chat.");
+      return;
+    }
+    const origin = (userState.origin ?? "").trim();
+    const destination = (userState.destination ?? "").trim();
+    const departure = (userState.departure ?? "").trim();
+    const passengers = (userState.passengers ?? "").trim() || "1";
+    const cabin = (userState.cabin ?? "business").trim().toLowerCase();
+
+    if (!origin || !destination) {
+      setSearchError("Please provide both origin and destination (cities or airport codes) in the chat before searching.");
+      return;
+    }
+    if (origin.length !== 3 || destination.length !== 3) {
+      setSearchError("Origin and destination must be 3-letter airport codes (e.g. BLR, DEL, JFK). Please complete the conversation so we can fill these correctly.");
+      return;
+    }
+    if (!departure) {
+      setSearchError("Please provide your departure date in the chat before searching.");
+      return;
+    }
+    const dateMatch = /^\d{4}-\d{2}-\d{2}$/.test(departure);
+    if (!dateMatch) {
+      setSearchError("Departure date must be in YYYY-MM-DD format. Please share your travel date in the chat.");
+      return;
+    }
+
     const params = new URLSearchParams({
-      origin: userState.origin ?? "",
-      destination: userState.destination ?? "",
-      departure: userState.departure ?? "",
-      passengers: userState.passengers ?? "1",
-      cabin: (userState.cabin ?? "business").toLowerCase(),
+      origin,
+      destination,
+      departure,
+      passengers,
+      cabin: cabin || "business",
     });
     setOpen(false);
     router.push(`/flights?${params.toString()}`);
@@ -288,6 +318,7 @@ export function ChatWidget() {
                 languageCode={languageCode}
                 onLanguageChange={setLanguageCode}
                 onSearchFlights={handleSearchFlights}
+                searchError={searchError}
               />
             </div>
           </motion.div>

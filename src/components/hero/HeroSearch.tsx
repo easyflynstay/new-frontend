@@ -470,20 +470,56 @@ export function HeroSearch() {
   const [returnDate, setReturnDate] = useState("");
   const [passengers, setPassengers] = useState("1");
   const [cabin, setCabin] = useState("business");
+  const [formError, setFormError] = useState<string | null>(null);
 
   const cabinValue = ALL_CABIN_OPTIONS.some((o) => o.value === cabin) ? cabin : ALL_CABIN_OPTIONS[0]?.value ?? "business";
 
+  useEffect(() => {
+    setFormError(null);
+  }, [originCode, destCode, departure, returnDate]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    const origin = originCode.trim();
+    const destination = destCode.trim();
+    const dep = departure.trim();
+
+    if (!origin) {
+      setFormError("Please select a city or airport for From.");
+      return;
+    }
+    if (!destination) {
+      setFormError("Please select a city or airport for To.");
+      return;
+    }
+    if (origin.length !== 3 || destination.length !== 3) {
+      setFormError("Please select valid airports from the suggestions for From and To.");
+      return;
+    }
+    if (!dep) {
+      setFormError("Please select a departure date.");
+      return;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dep)) {
+      setFormError("Please select a valid departure date.");
+      return;
+    }
+    if (tripType === "round" && returnDate.trim() && !/^\d{4}-\d{2}-\d{2}$/.test(returnDate.trim())) {
+      setFormError("Please select a valid return date.");
+      return;
+    }
+
     const params = new URLSearchParams({
-      origin: originCode || "BLR",
-      destination: destCode || "JFK",
-      departure: departure || new Date().toISOString().slice(0, 10),
+      origin,
+      destination,
+      departure: dep,
       passengers,
       cabin: cabinValue,
       scope: tripScope,
     });
-    if (tripType === "round" && returnDate) params.set("return", returnDate);
+    if (tripType === "round" && returnDate.trim()) params.set("return", returnDate.trim());
     router.push(`/flights?${params.toString()}`);
   };
 
@@ -719,6 +755,11 @@ export function HeroSearch() {
 
       {/* Search button bar - neutral background so assurance text is always readable */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/80 bg-slate-50/90 px-5 sm:px-6 py-4">
+        {formError ? (
+          <p className="w-full text-sm text-red-600 font-medium" role="alert">
+            {formError}
+          </p>
+        ) : null}
         <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-700">
           <span className="flex items-center gap-1.5">
             <svg className="h-4 w-4 shrink-0 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
