@@ -75,7 +75,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = useCallback(async (payload: SignUpPayload) => {
-    await signUpApi(payload);
+    const res = await signUpApi(payload);
+    localStorage.setItem("access_token", res.access_token);
+    const profile: UserProfile = {
+      customer_id: res.customer_id,
+      email: res.email,
+      first_name: res.first_name,
+      last_name: res.last_name,
+      created_at: "",
+      has_payment_pin: res.has_payment_pin ?? false,
+    };
+    localStorage.setItem("user", JSON.stringify(profile));
+    setState({ user: profile, token: res.access_token, loading: false });
   }, []);
 
   const logout = useCallback(() => {

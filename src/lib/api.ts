@@ -21,6 +21,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
+      const url = error.config?.url ?? "";
+      if (typeof url === "string" && url.includes("admin")) {
+        // Admin routes handle 401 themselves (login form / session expired).
+        return Promise.reject(error);
+      }
       localStorage.removeItem("access_token");
       localStorage.removeItem("user");
       window.location.href = "/login";

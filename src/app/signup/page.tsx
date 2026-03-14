@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { signUp, login, user } = useAuth();
+  const { signUp, user } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,7 +34,6 @@ export default function SignUpPage() {
     setLoading(true);
     try {
       await signUp({ firstName, lastName, email, password });
-      await login({ email, password });
       router.push("/dashboard");
     } catch (err: unknown) {
       const msg =

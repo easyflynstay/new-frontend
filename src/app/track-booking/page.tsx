@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { trackBooking, type TrackBookingResponse } from "@/services/booking";
+import { trackBooking, getTicketDownloadUrl, type TrackBookingResponse } from "@/services/booking";
 
 const statusConfig = {
   confirmed: { bg: "bg-emerald-50", border: "border-emerald-400", text: "text-emerald-700", dot: "bg-emerald-500" },
@@ -188,7 +188,9 @@ function TrackBookingContent() {
                     </div>
                     <div>
                       <span className="text-xs text-muted-foreground uppercase tracking-wider block">PNR</span>
-                      <p className="font-mono text-lg font-semibold text-muted-foreground italic">Will be updated soon</p>
+                      <p className="font-mono text-lg font-semibold text-primary">
+                        {booking.pnr ? booking.pnr : <span className="text-muted-foreground italic">Will be updated soon</span>}
+                      </p>
                     </div>
                     <div className="text-right">
                       <span className="text-xs text-muted-foreground">Booked on</span>
@@ -271,10 +273,20 @@ function TrackBookingContent() {
 
                   <div className="bg-muted/50 px-6 py-3 flex flex-wrap items-center justify-between gap-2 border-t border-border">
                     <p className="text-xs text-muted-foreground">Please arrive at the airport at least 3 hours before departure for international flights.</p>
-                    <Button variant="outline" size="sm" className="text-xs" onClick={() => window.print()}>
-                      <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2z"/></svg>
-                      Print
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {booking.ticket_path && (
+                        <a href={getTicketDownloadUrl(booking.booking_id, email.trim() || undefined)} target="_blank" rel="noopener noreferrer" download>
+                          <Button variant="accent" size="sm" className="text-xs text-primary">
+                            <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download ticket
+                          </Button>
+                        </a>
+                      )}
+                      <Button variant="outline" size="sm" className="text-xs" onClick={() => window.print()}>
+                        <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2z"/></svg>
+                        Print
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </motion.div>

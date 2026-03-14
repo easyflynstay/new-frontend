@@ -47,6 +47,8 @@ export interface TrackBookingResponse {
   class_type: string;
   travelers: string;
   created_at: string;
+  pnr?: string | null;
+  ticket_path?: string | null;
 }
 
 export interface MyBookingItem {
@@ -64,6 +66,8 @@ export interface MyBookingItem {
   travelers: string;
   created_at: string;
   status: "confirmed" | "completed";
+  pnr?: string | null;
+  ticket_path?: string | null;
 }
 
 export interface MyBookingsResponse {
@@ -93,4 +97,39 @@ export async function trackBooking(
 export async function getMyBookings(): Promise<MyBookingItem[]> {
   const { data } = await api.get<MyBookingsResponse>("/booking/my");
   return data.bookings;
+}
+
+/** Admin: update PNR for a booking. Requires admin sign-in (session cookie). */
+export async function adminUpdatePnr(
+  bookingId: string,
+  pnr: string
+): Promise<{ ok: boolean; booking_id: string; pnr: string | null }> {
+  const { data } = await api.patch<{ ok: boolean; booking_id: string; pnr: string | null }>(
+    `/booking/${encodeURIComponent(bookingId)}/pnr`,
+    { pnr: pnr.trim() },
+    { withCredentials: true }
+  );
+  return data;
+}
+
+/** Admin: attach ticket file (PDF/image) to a booking. User can download from track-booking page. Requires admin sign-in. */
+export async function adminUploadTicket(
+  bookingId: string,
+  file: File
+): Promise<{ ok: boolean; booking_id: string; ticket_attached: boolean }> {
+  const form = new FormData();
+  form.append("file", file);
+  const { data } = await api.post<{ ok: boolean; booking_id: string; ticket_attached: boolean }>(
+    `/booking/${encodeURIComponent(bookingId)}/ticket`,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
+  );
+  return data;
+}
+
+/** URL to download the attached ticket for a booking (optional email for verification). */
+export function getTicketDownloadUrl(bookingId: string, email?: string): string {
+  const path = `/api/booking/${encodeURIComponent(bookingId)}/ticket`;
+  const params = email ? `?email=${encodeURIComponent(email)}` : "";
+  return path + params;
 }

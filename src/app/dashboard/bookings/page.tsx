@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getMyBookings, type MyBookingItem } from "@/services/booking";
+import { getMyBookings, getTicketDownloadUrl, type MyBookingItem } from "@/services/booking";
 
 function formatDate(iso: string) {
   try {
@@ -46,7 +46,7 @@ function BookingCard({
           </div>
           <div>
             <p className="text-sm font-semibold">{b.from_place} → {b.to_place}</p>
-            <p className="text-[10px] text-muted-foreground">{b.booking_id}</p>
+            <p className="text-[10px] text-muted-foreground">{b.booking_id}{b.pnr ? ` · PNR: ${b.pnr}` : ""}</p>
           </div>
         </div>
         <span className={cn("border px-2.5 py-0.5 text-xs font-semibold", statusColor)}>
@@ -85,9 +85,16 @@ function BookingCard({
           <span><strong className="text-foreground">Date:</strong> {formatDate(b.check_in)}</span>
           <span><strong className="text-foreground">Travelers:</strong> {b.travelers}</span>
         </div>
-        <Link href={`/track-booking?booking_id=${encodeURIComponent(b.booking_id)}`}>
-          <Button variant="outline" size="sm" className="text-xs">View Details</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          {b.ticket_path && (
+            <a href={getTicketDownloadUrl(b.booking_id)} target="_blank" rel="noopener noreferrer" download>
+              <Button variant="accent" size="sm" className="text-xs text-primary">Download ticket</Button>
+            </a>
+          )}
+          <Link href={`/track-booking?booking_id=${encodeURIComponent(b.booking_id)}`}>
+            <Button variant="outline" size="sm" className="text-xs">View Details</Button>
+          </Link>
+        </div>
       </div>
     </motion.div>
   );

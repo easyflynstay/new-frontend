@@ -50,44 +50,67 @@ export function loadRazorpayScript(): Promise<void> {
   return scriptLoading;
 }
 
+/**
+ * Opens Razorpay Checkout (same SDK for Test and Live — use test key in Test Mode, live key in Live Mode).
+ * Frontend NEXT_PUBLIC_RAZORPAY_KEY_ID must match the key used by the backend to create the order.
+ */
 export function openRazorpayCheckout({
   orderId,
   amountPaise,
   currency,
   userName,
   userEmail,
+  userContact,
   onSuccess,
   onDismiss,
+  onError,
 }: {
   orderId: string;
   amountPaise: number;
   currency: string;
   userName?: string;
   userEmail?: string;
+  userContact?: string;
   onSuccess: (response: RazorpayResponse) => void;
   onDismiss?: () => void;
+  onError?: (err: Error) => void;
 }): void {
   const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-  if (!keyId) {
-    throw new Error("NEXT_PUBLIC_RAZORPAY_KEY_ID is not set");
+  if (!keyId || keyId.trim() === "") {
+    const err = new Error("Payment is not configured. Please set NEXT_PUBLIC_RAZORPAY_KEY_ID (use the same Key ID as your backend).");
+    onError ? onError(err) : undefined;
+    throw err;
+  }
+
+  if (typeof window === "undefined" || !window.Razorpay) {
+    const err = new Error("Razorpay checkout script did not load. Check your connection or try again.");
+    onError ? onError(err) : undefined;
+    throw err;
   }
 
   const options: RazorpayOptions = {
     key: keyId,
-    amount: amountPaise,
+    amount: Math.round(Number(amountPaise)),
     currency,
     name: "Easyflynstay",
-    description: "Gift Card Purchase",
-    order_id: orderId,
+    description: "Flight Booking",
+    order_id: String(orderId),
     handler: onSuccess,
     prefill: {
       name: userName || "",
       email: userEmail || "",
+      contact: userContact || "",
     },
     theme: { color: "#C9A227" },
     modal: { ondismiss: onDismiss },
   };
 
-  const rzp = new window.Razorpay(options);
-  rzp.open();
+  try {
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  } catch (err) {
+    const e = err instanceof Error ? err : new Error(String(err));
+    onError ? onError(e) : undefined;
+    throw e;
+  }
 }

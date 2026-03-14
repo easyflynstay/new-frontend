@@ -7,10 +7,15 @@ export interface SignUpPayload {
   password: string;
 }
 
+/** Signup returns same shape as login so we can set token and navigate without a separate login call. */
 export interface SignUpResponse {
+  access_token: string;
+  token_type: string;
   customer_id: string;
   email: string;
-  message: string;
+  first_name: string;
+  last_name: string;
+  has_payment_pin?: boolean;
 }
 
 export interface LoginPayload {

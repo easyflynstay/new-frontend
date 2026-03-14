@@ -99,6 +99,7 @@ function BookingContent() {
         currency: order.currency,
         userName: name,
         userEmail: email,
+        userContact: phone ? (phone.startsWith("+") ? phone : `+91${phone.replace(/\D/g, "").slice(-10)}`) : undefined,
         onSuccess: async () => {
           await submitBooking();
           setSubmitLoading(false);
@@ -106,6 +107,10 @@ function BookingContent() {
         onDismiss: () => {
           setSubmitLoading(false);
           setPaymentError("Payment was cancelled.");
+        },
+        onError: (err) => {
+          setPaymentError(err.message || "Payment could not be opened.");
+          setSubmitLoading(false);
         },
       });
     } catch (err: unknown) {
