@@ -78,13 +78,13 @@ export function openRazorpayCheckout({
   const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
   if (!keyId || keyId.trim() === "") {
     const err = new Error("Payment is not configured. Please set NEXT_PUBLIC_RAZORPAY_KEY_ID (use the same Key ID as your backend).");
-    onError ? onError(err) : undefined;
+    onError?.(err);
     throw err;
   }
 
   if (typeof window === "undefined" || !window.Razorpay) {
     const err = new Error("Razorpay checkout script did not load. Check your connection or try again.");
-    onError ? onError(err) : undefined;
+    onError?.(err);
     throw err;
   }
 
@@ -110,7 +110,7 @@ export function openRazorpayCheckout({
     rzp.open();
   } catch (err) {
     const e = err instanceof Error ? err : new Error(String(err));
-    onError ? onError(e) : undefined;
+    onError?.(e);
     throw e;
   }
 }
