@@ -2,6 +2,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ChatContainer } from "@/components/chat/ChatContainer";
 
+/** Avoid static prerender so code that uses `document` (e.g. in deps) does not run at build time. */
+export const dynamic = "force-dynamic";
+
 export default function ChatPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
