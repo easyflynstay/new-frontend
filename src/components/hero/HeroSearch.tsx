@@ -457,7 +457,6 @@ const ALL_CABIN_OPTIONS = [
   { value: "business", label: "Business Class", sub: "Lie-flat seats & lounge access" },
   { value: "first", label: "First Class", sub: "Ultimate luxury experience" },
 ];
-const DOMESTIC_CABIN_OPTIONS = ALL_CABIN_OPTIONS.filter((c) => c.value === "business" || c.value === "first");
 
 export function HeroSearch() {
   const router = useRouter();
@@ -472,14 +471,7 @@ export function HeroSearch() {
   const [passengers, setPassengers] = useState("1");
   const [cabin, setCabin] = useState("business");
 
-  const cabinOptions = tripScope === "domestic" ? DOMESTIC_CABIN_OPTIONS : ALL_CABIN_OPTIONS;
-  const cabinValue = cabinOptions.some((o) => o.value === cabin) ? cabin : cabinOptions[0]?.value ?? "business";
-
-  useEffect(() => {
-    if (tripScope === "domestic" && (cabin === "economy" || cabin === "premium")) {
-      setCabin("business");
-    }
-  }, [tripScope, cabin]);
+  const cabinValue = ALL_CABIN_OPTIONS.some((o) => o.value === cabin) ? cabin : ALL_CABIN_OPTIONS[0]?.value ?? "business";
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -586,7 +578,7 @@ export function HeroSearch() {
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            Business Domestic
+            Domestic
           </button>
         </div>
       </div>
@@ -714,7 +706,7 @@ export function HeroSearch() {
             <CustomSelect
               value={cabinValue}
               onChange={setCabin}
-              options={cabinOptions}
+              options={ALL_CABIN_OPTIONS}
               icon={
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />

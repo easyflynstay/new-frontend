@@ -49,45 +49,10 @@ const whyChoose = [
   },
   {
     title: "Trusted by Thousands",
-    desc: "ARC accredited & BBB A+ rated. Over 50,000 satisfied travelers worldwide.",
+    desc: "Trusted by over 50,000 satisfied travelers worldwide. Secure payments and dedicated support.",
     icon: (
       <svg className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-      </svg>
-    ),
-  },
-];
-
-const steps = [
-  {
-    n: 1, title: "Search", desc: "Enter your route, dates and cabin class.",
-    icon: (
-      <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-      </svg>
-    ),
-  },
-  {
-    n: 2, title: "Select", desc: "Choose from curated premium flight options.",
-    icon: (
-      <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-      </svg>
-    ),
-  },
-  {
-    n: 3, title: "Book", desc: "Complete passenger details and secure payment.",
-    icon: (
-      <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-      </svg>
-    ),
-  },
-  {
-    n: 4, title: "Fly", desc: "Receive confirmation and travel with confidence.",
-    icon: (
-      <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
       </svg>
     ),
   },
@@ -195,7 +160,7 @@ export default function HomePage() {
       <Navbar />
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative min-h-[600px] overflow-visible">
+        <section className="relative min-h-[900px] overflow-visible">
           <Image
             src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&h=1000&fit=crop&q=90"
             alt="Travel adventure"
@@ -232,7 +197,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="mt-10 flex justify-center"
+              className="mt-10 flex justify-center pb-48"
             >
               <HeroSearch />
             </motion.div>
@@ -252,11 +217,11 @@ export default function HomePage() {
             <div className="mt-4 flex flex-wrap items-center justify-center gap-8">
               <motion.span whileHover={{ scale: 1.05 }} className="flex items-center gap-2 font-semibold text-primary">
                 <svg className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
-                ARC ACCREDITED
+                Best Price Guarantee
               </motion.span>
               <motion.span whileHover={{ scale: 1.05 }} className="flex items-center gap-2 font-semibold text-primary">
-                <svg className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0l-4.725 2.885a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
-                BBB A+
+                <svg className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
+                Secure Booking
               </motion.span>
               <motion.span whileHover={{ scale: 1.05 }} className="flex items-center gap-2 font-semibold text-accent">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -313,7 +278,7 @@ export default function HomePage() {
                 <motion.div
                   key={item.dest}
                   whileHover={{ scale: 1.03, y: -5 }}
-                  className="group relative h-72 overflow-hidden cursor-pointer"
+                  className="group relative h-72 overflow-hidden cursor-default"
                 >
                   <Image src={item.img} alt={item.dest} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -407,20 +372,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Airline partners */}
-        <section className="py-16 bg-white border-t border-border">
-          <SectionReveal className="mx-auto max-w-7xl px-4 text-center">
-            <h2 className="font-heading text-3xl font-semibold text-foreground">Our Airline Partners</h2>
-            <p className="mt-2 text-muted-foreground">We work with the world&apos;s best airlines to bring you premium fares.</p>
-            <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6">
-              {airlines.map((a) => (
-                <AirlineLogo key={a.name} name={a.name} code={a.code} color={a.color} text={a.text} />
-              ))}
-            </div>
-          </SectionReveal>
-        </section>
-
-        {/* Gift Cards Banner */}
+        {/* Premium Gift Cards - same design as gift-cards page */}
         <section className="relative overflow-hidden bg-primary py-16">
           <div className="absolute inset-0 opacity-10">
             <svg className="h-full w-full" viewBox="0 0 1200 400" fill="none">
@@ -428,90 +380,62 @@ export default function HomePage() {
               <circle cx="100" cy="350" r="180" fill="white" fillOpacity="0.1" />
             </svg>
           </div>
-          <SectionReveal className="relative mx-auto max-w-5xl px-4 flex flex-col md:flex-row items-center gap-10">
-            <div className="flex-1 text-white">
-              <div className="inline-flex items-center gap-2 border border-accent/30 bg-accent/10 px-3 py-1 mb-4">
-                <motion.svg
-                  className="h-4 w-4 text-accent shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </motion.svg>
-                <span className="text-xs font-semibold text-accent tracking-wider uppercase">Gift of Travel · Syncing</span>
+          <SectionReveal className="relative mx-auto max-w-5xl px-4">
+            <div className="grid gap-10 md:grid-cols-2 items-center">
+              <div className="text-white">
+                <div className="mb-4 inline-flex items-center gap-2 border border-accent/50 bg-accent/10 px-4 py-1.5 backdrop-blur-sm">
+                  <svg className="h-4 w-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
+                  <span className="text-xs font-semibold text-accent tracking-wider uppercase">The Gift of Travel</span>
+                </div>
+                <h2 className="font-heading text-3xl font-bold md:text-4xl">Premium Gift Cards</h2>
+                <p className="mt-4 text-lg text-white/70 max-w-md">Give the gift of luxury travel. Three exclusive tiers — Prime, Signature & Elite — crafted for every occasion.</p>
+                <Link href="/gift-cards" className="mt-6 inline-block">
+                  <Button variant="accent" size="lg" className="text-primary font-semibold">
+                    Explore Gift Cards
+                    <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                  </Button>
+                </Link>
               </div>
-              <h2 className="font-heading text-3xl font-bold md:text-4xl">Premium Gift Cards</h2>
-              <p className="mt-3 text-white/80 max-w-md">Give the gift of luxury travel. Three exclusive tiers — Silver, Gold & Black — crafted for every occasion.</p>
-              <Link href="/gift-cards" className="mt-6 inline-block">
-                <Button variant="accent" size="lg" className="text-primary font-semibold">
-                  Explore Gift Cards
-                  <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                </Button>
-              </Link>
-            </div>
-            <div className="relative w-72 h-44">
-              <motion.div
-                animate={{ rotate: [-3, 3, -3], boxShadow: ["0 25px 50px -12px rgba(0,0,0,0.2)", "0 25px 50px -12px rgba(0,0,0,0.3)", "0 25px 50px -12px rgba(0,0,0,0.2)"] }}
-                transition={{ rotate: { repeat: Infinity, duration: 4, ease: "easeInOut" }, boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" } }}
-                className="absolute inset-0 bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 shadow-2xl p-5 flex flex-col justify-between"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/40">Easyflynstay</p>
-                    <p className="font-heading text-xl font-bold text-black/80">Gold</p>
+              <div className="flex justify-center">
+                <div className="relative w-[380px] h-[240px] rounded-xl bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 shadow-2xl border border-white/10 overflow-hidden">
+                  <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none">
+                    <svg className="h-full w-full" viewBox="0 0 400 240" fill="none">
+                      <circle cx="320" cy="40" r="140" fill="white" fillOpacity="0.12" />
+                      <circle cx="60" cy="200" r="100" fill="white" fillOpacity="0.08" />
+                    </svg>
                   </div>
-                  <svg className="h-6 w-6 text-black/30" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg>
+                  <div className="relative flex h-full flex-col justify-between p-6">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-bold uppercase tracking-[0.2em] text-amber-950/70">EasyFlyNStay</p>
+                        <p className="font-heading text-lg font-bold mt-1 text-amber-950">Signature</p>
+                      </div>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-950/15">
+                        <svg className="h-4 w-4 text-amber-950/80" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg>
+                      </div>
+                    </div>
+                    <p className="font-mono text-lg font-semibold tracking-widest text-amber-950/90">XXXX XXXX XXXX 5678</p>
+                    <div className="flex items-end justify-between">
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] uppercase tracking-wider text-amber-950/85">Valid from 03/26</p>
+                        <p className="text-[9px] uppercase tracking-wider text-amber-950/85">Valid thru 03/29</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-amber-950/85">Cardholder</p>
+                        <p className="font-heading text-sm font-bold text-amber-950">Priya Mehta</p>
+                      </div>
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-white/20">
+                        <span className="font-heading text-sm font-bold text-accent">E</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[9px] text-black/30">Gift Card Value</p>
-                  <p className="font-heading text-lg font-bold text-black/70">{formatUsdAsInr(500)} – {formatUsdAsInr(2500)}</p>
-                </div>
-              </motion.div>
+              </div>
             </div>
           </SectionReveal>
         </section>
 
-        {/* Ready For Flight (how booking works) */}
-        <section className="py-16 border-t border-border">
-          <div className="mx-auto max-w-7xl px-4">
-            <SectionReveal>
-              <h2 className="font-heading text-3xl font-semibold text-foreground text-center">Ready For Flight</h2>
-              <p className="mt-2 text-muted-foreground text-center">Search, select, book and fly — simple steps to your next trip.</p>
-            </SectionReveal>
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
-            >
-              {steps.map((s, i) => (
-                <motion.div
-                  key={s.n}
-                  variants={itemVariants}
-                  className="relative flex gap-4 border border-border bg-card p-6"
-                >
-                  {i < steps.length - 1 && (
-                    <div className="absolute -right-3 top-1/2 hidden lg:block w-6 h-0.5 bg-accent" />
-                  )}
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center border-2 border-accent bg-accent/10 text-accent">
-                    {s.icon}
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-accent uppercase tracking-wider">Step {s.n}</p>
-                    <h3 className="font-heading text-lg font-semibold">{s.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{s.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* CTA */}
+        {/* Ready to Fly CTA */}
         <section className="relative overflow-hidden">
           <Image
             src="https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1920&h=600&fit=crop&q=90"
@@ -539,6 +463,20 @@ export default function HomePage() {
             </div>
           </motion.div>
         </section>
+
+        {/* Airline partners */}
+        <section className="py-16 bg-white border-t border-border">
+          <SectionReveal className="mx-auto max-w-7xl px-4 text-center">
+            <h2 className="font-heading text-3xl font-semibold text-foreground">Our Airline Partners</h2>
+            <p className="mt-2 text-muted-foreground">We work with the world&apos;s best airlines to bring you premium fares.</p>
+            <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6">
+              {airlines.map((a) => (
+                <AirlineLogo key={a.name} name={a.name} code={a.code} color={a.color} text={a.text} />
+              ))}
+            </div>
+          </SectionReveal>
+        </section>
+
       </main>
       <Footer />
     </div>

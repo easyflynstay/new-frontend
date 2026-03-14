@@ -67,9 +67,17 @@ function FlightsContent() {
       const res = await api.get<FlightCardProps[]>("/flights/search", { params });
       setFlights(res.data);
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.detail ||
-        "Unable to fetch flights. Please try again.";
+      const detail = err?.response?.data?.detail;
+      let msg = "Unable to fetch flights. Please try again.";
+      if (typeof detail === "string") {
+        msg = detail;
+      } else if (Array.isArray(detail) && detail.length > 0) {
+        // Pydantic-style error list
+        const first = detail[0];
+        if (first?.msg) {
+          msg = String(first.msg);
+        }
+      }
       setError(msg);
     } finally {
       setLoading(false);

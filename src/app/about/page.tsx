@@ -59,8 +59,8 @@ export default function AboutPage() {
                   first class flights worldwide.
                 </p>
                 <p className="mt-4 text-muted-foreground leading-relaxed">
-                  We are an ARC-accredited agency and BBB A+ rated business, trusted by thousands of travelers for
-                  reliable, personalized service and unbeatable prices.
+                  We are trusted by thousands of travelers for reliable, personalized service, secure booking, and
+                  unbeatable prices on premium cabin travel.
                 </p>
                 <div className="mt-8 grid grid-cols-2 gap-4">
                   {stats.map((s) => (

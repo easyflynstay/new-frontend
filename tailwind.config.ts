@@ -55,6 +55,20 @@ const config: Config = {
         card: "0 2px 8px rgba(11, 31, 59, 0.08)",
         "card-hover": "0 8px 24px rgba(11, 31, 59, 0.12)",
       },
+      keyframes: {
+        chatSlideUp: {
+          "0%": { opacity: "0", transform: "translateY(16px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        caretBlink: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0" },
+        },
+      },
+      animation: {
+        "chat-slide-up": "chatSlideUp 0.3s ease-out",
+        "caret-blink": "caretBlink 0.8s step-end infinite",
+      },
     },
   },
   plugins: [],

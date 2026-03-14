@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <!-- Navy primary -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0B1F3B"/>
+      <stop offset="100%" style="stop-color:#0d2847"/>
+    </linearGradient>
+    <!-- Gold accent -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4af37"/>
+      <stop offset="100%" style="stop-color:#C9A227"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="0" fill="url(#bg)"/>
+  <text x="80" y="108" text-anchor="middle" font-family="Georgia, 'Libre Baskerville', serif" font-size="96" font-weight="bold" fill="url(#gold)">E</text>
+</svg>

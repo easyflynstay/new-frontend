@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,13 +45,7 @@ export function Navbar() {
       <div className="border-b border-border bg-white px-4 py-3">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center bg-primary">
-              <span className="font-heading text-lg font-bold text-accent">E</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-heading text-xl font-bold tracking-tight text-primary">EASYFLYNSTAY</span>
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Fly Easy, Stay Easy</span>
-            </div>
+            <Image src="/logo-full.svg" alt="Easyflynstay" width={280} height={70} className="h-14 w-auto sm:h-16 sm:w-auto" priority />
           </Link>
           <div className="flex items-center gap-4 text-sm text-charcoal">
             <span className="hidden sm:inline font-medium">PREMIUM TRAVEL EXPERIENCE</span>

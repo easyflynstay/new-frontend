@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const footerLinks = [
   { label: "Track Booking", href: "/track-booking" },
@@ -15,9 +16,7 @@ export function Footer() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center bg-accent">
-                <span className="font-heading text-lg font-bold text-primary">E</span>
-              </div>
+              <Image src="/logo.svg" alt="Easyflynstay" width={40} height={40} className="h-10 w-10 rounded-none" />
               <h3 className="font-heading text-lg font-semibold">Easyflynstay</h3>
             </div>
             <p className="mt-3 text-sm text-white/80">Premium business and first class flight booking. Fly easy, stay easy.</p>
