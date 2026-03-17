@@ -61,6 +61,7 @@ function FlightsContent() {
         passengers,
         cabin,
         max: "50",
+        currency: "INR",
       };
       if (returnDate) params["return"] = returnDate;
 
