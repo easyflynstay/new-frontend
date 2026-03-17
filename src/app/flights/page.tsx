@@ -30,6 +30,7 @@ function FlightsContent() {
   const returnDate = searchParams.get("return") || "";
   const passengers = searchParams.get("passengers") || "1";
   const cabin = searchParams.get("cabin") || "economy";
+  const currency = searchParams.get("currency") || "INR";
 
   const [flights, setFlights] = useState<FlightCardProps[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +62,7 @@ function FlightsContent() {
         passengers,
         cabin,
         max: "50",
-        currency: "INR",
+        currency,
       };
       if (returnDate) params["return"] = returnDate;
 
@@ -83,7 +84,7 @@ function FlightsContent() {
     } finally {
       setLoading(false);
     }
-  }, [origin, destination, departure, returnDate, passengers, cabin]);
+  }, [origin, destination, departure, returnDate, passengers, cabin, currency]);
 
   useEffect(() => {
     fetchFlights();
