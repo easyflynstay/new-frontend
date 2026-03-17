@@ -521,6 +521,7 @@ export function HeroSearch() {
       passengers,
       cabin: cabinValue,
       scope: tripScope,
+      currency: "INR",
     });
     if (tripType === "round" && returnDate.trim()) params.set("return", returnDate.trim());
     router.push(`/flights?${params.toString()}`);
