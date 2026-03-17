@@ -13,12 +13,12 @@ const stats = [
   { value: "24/7", label: "Concierge Support" },
 ];
 
-// Team section data — to be included when team block is re-enabled
-// const team = [
-//   { name: "Sarah Mitchell", role: "CEO & Founder", image: "..." },
-//   { name: "David Chen", role: "Head of Operations", image: "..." },
-//   { name: "Priya Sharma", role: "Travel Director", image: "..." },
-// ];
+// Team section data — to be included when team block is re - enabled
+const team = [
+  { name: "Sarah Mitchell", role: "CEO & Founder", image: "..." },
+  { name: "David Chen", role: "Head of Operations", image: "..." },
+  { name: "Priya Sharma", role: "Travel Director", image: "..." },
+];
 
 export default function AboutPage() {
   return (
@@ -116,7 +116,7 @@ export default function AboutPage() {
         </section>
 
         {/* Team - hidden for now, to be included later */}
-        {/* <section className="py-16">
+        <section className="py-16">
           <SectionReveal className="mx-auto max-w-7xl px-4 text-center">
             <h2 className="font-heading text-3xl font-semibold text-foreground">Meet Our Leadership</h2>
             <p className="mt-2 text-muted-foreground">Experienced professionals dedicated to your travel experience.</p>
@@ -132,7 +132,7 @@ export default function AboutPage() {
               ))}
             </div>
           </SectionReveal>
-        </section> */}
+        </section>
       </main>
       <Footer />
     </div>
