@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -460,19 +460,22 @@ const ALL_CABIN_OPTIONS = [
 
 export function HeroSearch() {
   const router = useRouter();
-  const [tripType, setTripType] = useState<"round" | "oneway">("oneway");
+  const searchParams = useSearchParams();
+  const [tripType, setTripType] = useState<"round" | "oneway">(() =>
+    searchParams.get("return") ? "round" : "oneway"
+  );
   const [tripScope, setTripScope] = useState<"international" | "domestic">("international");
-  const [originCode, setOriginCode] = useState("");
-  const [originDisplay, setOriginDisplay] = useState("");
-  const [destCode, setDestCode] = useState("");
-  const [destDisplay, setDestDisplay] = useState("");
-  const [departure, setDeparture] = useState("");
-  const [returnDate, setReturnDate] = useState("");
-  const [passengers, setPassengers] = useState("1");
-  const [cabin, setCabin] = useState("business");
+  const [originCode, setOriginCode] = useState(() => searchParams.get("origin") ?? "");
+  const [originDisplay, setOriginDisplay] = useState(() => searchParams.get("origin") ?? "");
+  const [destCode, setDestCode] = useState(() => searchParams.get("destination") ?? "");
+  const [destDisplay, setDestDisplay] = useState(() => searchParams.get("destination") ?? "");
+  const [departure, setDeparture] = useState(() => searchParams.get("departure") ?? "");
+  const [returnDate, setReturnDate] = useState(() => searchParams.get("return") ?? "");
+  const [passengers, setPassengers] = useState(() => searchParams.get("passengers") ?? "1");
+  const [cabin, setCabin] = useState(() => searchParams.get("cabin") ?? "economy");
   const [formError, setFormError] = useState<string | null>(null);
 
-  const cabinValue = ALL_CABIN_OPTIONS.some((o) => o.value === cabin) ? cabin : ALL_CABIN_OPTIONS[0]?.value ?? "business";
+  const cabinValue = ALL_CABIN_OPTIONS.some((o) => o.value === cabin) ? cabin : ALL_CABIN_OPTIONS[0]?.value ?? "economy";
 
   useEffect(() => {
     setFormError(null);

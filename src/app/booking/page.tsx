@@ -38,7 +38,7 @@ function BookingContent() {
   const flightId = searchParams.get("flightId") || "";
   const from = searchParams.get("from") || "";
   const to = searchParams.get("to") || "";
-  const cabin = searchParams.get("cabin") || "business";
+  const cabin = searchParams.get("cabin") || "economy";
   const price = parseFloat(searchParams.get("price") || "0");
   const currencyFromUrl = (searchParams.get("currency") || "INR").toUpperCase();
   const airline = searchParams.get("airline") || "";
@@ -66,7 +66,7 @@ function BookingContent() {
   const [passengerDetails, setPassengerDetails] = useState<{ name: string; age: string; gender: string }[]>(() =>
     Array.from({ length: passengerCount }, () => ({ name: "", age: "", gender: "" }))
   );
-  const [seatClass] = useState(domestic ? "business" : cabin);
+  const [seatClass] = useState(domestic ? "economy" : cabin);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "giftcard" | null>(null);
   const [giftCardLast4, setGiftCardLast4] = useState("");
   const [userGiftCards, setUserGiftCards] = useState<GiftCard[]>([]);

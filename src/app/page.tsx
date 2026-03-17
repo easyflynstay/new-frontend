@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -199,7 +199,9 @@ export default function HomePage() {
               transition={{ delay: 0.5, duration: 0.6 }}
               className="mt-10 flex justify-center pb-48"
             >
-              <HeroSearch />
+              <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading search…</div>}>
+                <HeroSearch />
+              </Suspense>
             </motion.div>
           </motion.div>
         </section>

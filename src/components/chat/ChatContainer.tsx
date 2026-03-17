@@ -76,7 +76,7 @@ export function ChatContainer({ mode = "page", onSearchFlights }: ChatContainerP
         destination: p.destination,
         departure: p.departure,
         passengers: p.passengers || "1",
-        cabin: p.cabin || "business",
+        cabin: p.cabin || "economy",
       });
     } catch {
       setExtracted(null);
@@ -195,8 +195,8 @@ export function ChatContainer({ mode = "page", onSearchFlights }: ChatContainerP
     if (v === "premium" || v === "premium economy" || v === "premiumeconomy") {
       return "premium";
     }
-    // Fallback to business to keep API happy
-    return "business";
+    // Fallback to economy to keep API happy
+    return "economy";
   };
 
   const handleSearchFlights = () => {

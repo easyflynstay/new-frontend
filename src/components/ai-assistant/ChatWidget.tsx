@@ -207,7 +207,7 @@ export function ChatWidget() {
     const destination = (userState.destination ?? "").trim();
     const departure = (userState.departure ?? "").trim();
     const passengers = (userState.passengers ?? "").trim() || "1";
-    const cabin = (userState.cabin ?? "business").trim().toLowerCase();
+    const cabin = (userState.cabin ?? "economy").trim().toLowerCase();
 
     if (!origin || !destination) {
       setSearchError("Please provide both origin and destination (cities or airport codes) in the chat before searching.");
@@ -232,7 +232,7 @@ export function ChatWidget() {
       destination,
       departure,
       passengers,
-      cabin: cabin || "business",
+      cabin: cabin || "economy",
     });
     setOpen(false);
     router.push(`/flights?${params.toString()}`);

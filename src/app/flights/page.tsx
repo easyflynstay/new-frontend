@@ -29,7 +29,7 @@ function FlightsContent() {
   const departure = searchParams.get("departure") || "";
   const returnDate = searchParams.get("return") || "";
   const passengers = searchParams.get("passengers") || "1";
-  const cabin = searchParams.get("cabin") || "business";
+  const cabin = searchParams.get("cabin") || "economy";
 
   const [flights, setFlights] = useState<FlightCardProps[]>([]);
   const [loading, setLoading] = useState(true);
