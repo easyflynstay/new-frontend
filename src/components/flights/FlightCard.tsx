@@ -286,7 +286,7 @@ export function FlightCard({
                 </svg>
               </button>
             </div>
-            <Link href={`/booking?flightId=${id}&from=${departureCode}&to=${arrivalCode}&cabin=${cabin}&price=${price}&airline=${encodeURIComponent(airlineName)}${departureDate ? `&departure=${departureDate}` : ""}${returnDate ? `&return=${returnDate}` : ""}&passengers=${passengers}`}>
+            <Link href={`/booking?flightId=${id}&from=${departureCode}&to=${arrivalCode}&cabin=${cabin}&price=${price}&currency=${currency || "INR"}&airline=${encodeURIComponent(airlineName)}${departureDate ? `&departure=${departureDate}` : ""}${returnDate ? `&return=${returnDate}` : ""}&passengers=${passengers}`}>
               <Button variant="accent" className="text-primary text-xs px-6">SELECT FLIGHT</Button>
             </Link>
           </div>

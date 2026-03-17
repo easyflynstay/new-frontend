@@ -40,6 +40,7 @@ function BookingContent() {
   const to = searchParams.get("to") || "";
   const cabin = searchParams.get("cabin") || "business";
   const price = parseFloat(searchParams.get("price") || "0");
+  const currencyFromUrl = (searchParams.get("currency") || "INR").toUpperCase();
   const airline = searchParams.get("airline") || "";
   const departure = searchParams.get("departure") || "";
   const returnDate = searchParams.get("return") || "";
@@ -48,14 +49,23 @@ function BookingContent() {
   const tripType = returnDate ? "round" : "one-way";
   const checkIn = departure;
   const checkOut = returnDate || departure;
-  const totalAmountUsd = price * parseInt(passengers, 10) || 0;
-  const totalAmount = usdToInr(totalAmountUsd);
+  const passengerCountNum = parseInt(passengers, 10) || 1;
+  const totalAmount =
+    currencyFromUrl === "INR"
+      ? price * passengerCountNum
+      : usdToInr(price * passengerCountNum);
   const domestic = isDomestic(from, to);
+
+  const passengerCount = Math.max(1, parseInt(passengers, 10) || 1);
 
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  /** Per-passenger details when passengers > 1. For 1 passenger, name/email/phone only. */
+  const [passengerDetails, setPassengerDetails] = useState<{ name: string; age: string; gender: string }[]>(() =>
+    Array.from({ length: passengerCount }, () => ({ name: "", age: "", gender: "" }))
+  );
   const [seatClass] = useState(domestic ? "business" : cabin);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "giftcard" | null>(null);
   const [giftCardLast4, setGiftCardLast4] = useState("");
@@ -68,10 +78,25 @@ function BookingContent() {
 
   useEffect(() => {
     if (user) {
-      setName([user.first_name, user.last_name].filter(Boolean).join(" ") || "");
+      const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "";
+      setName(fullName);
       setEmail(user.email || "");
+      setPassengerDetails((prev) => {
+        const next = prev.slice(0, passengerCount);
+        while (next.length < passengerCount) next.push({ name: "", age: "", gender: "" });
+        if (next[0]) next[0] = { ...next[0], name: next[0].name || fullName };
+        return next;
+      });
     }
-  }, [user]);
+  }, [user, passengerCount]);
+
+  useEffect(() => {
+    setPassengerDetails((prev) => {
+      if (prev.length === passengerCount) return prev;
+      const next = Array.from({ length: passengerCount }, (_, i) => prev[i] || { name: "", age: "", gender: "" });
+      return next;
+    });
+  }, [passengerCount]);
 
   useEffect(() => {
     if (!user) return;
@@ -85,7 +110,13 @@ function BookingContent() {
   const giftCardToUse = matchedGiftCard && giftCardBalance >= totalAmount ? totalAmount : 0;
   const giftCardSufficient = matchedGiftCard != null && giftCardBalance >= totalAmount;
 
-  const canProceedPassenger = name.trim().length > 0 && email.trim().length > 0 && phone.trim().length >= 10;
+  const canProceedPassenger =
+    email.trim().length > 0 &&
+    phone.trim().length >= 10 &&
+    (passengerCount === 1
+      ? name.trim().length > 0
+      : passengerDetails.length >= passengerCount &&
+        passengerDetails.slice(0, passengerCount).every((p) => p.name.trim().length > 0 && p.age.trim().length > 0 && p.gender.trim().length > 0));
 
   const handlePayWithRazorpay = async () => {
     setSubmitLoading(true);
@@ -123,8 +154,10 @@ function BookingContent() {
   };
 
   const submitBooking = async (giftcardCode?: string, giftcardAmountUsed?: number, paymentPin?: string) => {
+    const primaryName =
+      passengerCount === 1 ? name.trim() : passengerDetails[0]?.name.trim() || name.trim();
     const payload: CreateBookingPayload = {
-      name: name.trim(),
+      name: primaryName,
       email: email.trim(),
       phone: phone.trim(),
       from,
@@ -136,6 +169,13 @@ function BookingContent() {
       travelers: passengers,
     };
     if (user?.customer_id) payload.customerId = user.customer_id;
+    if (passengerCount > 1 && passengerDetails.length >= passengerCount) {
+      payload.passengerDetails = passengerDetails.slice(0, passengerCount).map((p) => ({
+        name: p.name.trim(),
+        age: p.age.trim(),
+        gender: p.gender.trim(),
+      }));
+    }
     if (giftcardCode && giftcardAmountUsed != null) {
       payload.giftcardCode = giftcardCode;
       payload.giftcardAmountUsed = giftcardAmountUsed;
@@ -260,35 +300,123 @@ function BookingContent() {
                     <p className="text-sm text-white/80">We’ll use this for your booking and e-ticket</p>
                   </CardHeader>
                   <CardContent className="p-6 space-y-4">
-                    <div>
-                      <Label>Full name</Label>
-                      <Input
-                        className="mt-1"
-                        placeholder="John Smith"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Email</Label>
-                      <Input
-                        type="email"
-                        className="mt-1"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Phone number</Label>
-                      <Input
-                        type="tel"
-                        className="mt-1"
-                        placeholder="+91 98765 43210"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                    </div>
+                    {passengerCount === 1 ? (
+                      <>
+                        <div>
+                          <Label>Full name</Label>
+                          <Input
+                            className="mt-1"
+                            placeholder="John Smith"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label>Email</Label>
+                          <Input
+                            type="email"
+                            className="mt-1"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label>Phone number</Label>
+                          <Input
+                            type="tel"
+                            className="mt-1"
+                            placeholder="+91 98765 43210"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-muted-foreground font-medium">Contact details (one for the booking)</p>
+                        <div>
+                          <Label>Email</Label>
+                          <Input
+                            type="email"
+                            className="mt-1"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label>Phone number</Label>
+                          <Input
+                            type="tel"
+                            className="mt-1"
+                            placeholder="+91 98765 43210"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                          />
+                        </div>
+                        <p className="text-sm text-muted-foreground font-medium pt-2">Passenger details</p>
+                        {passengerDetails.slice(0, passengerCount).map((p, i) => (
+                          <div key={i} className="rounded-lg border border-border p-4 space-y-3">
+                            <p className="text-xs font-semibold text-muted-foreground">Passenger {i + 1}</p>
+                            <div>
+                              <Label>Full name</Label>
+                              <Input
+                                className="mt-1"
+                                placeholder="John Smith"
+                                value={p.name}
+                                onChange={(e) =>
+                                  setPassengerDetails((prev) => {
+                                    const next = [...prev];
+                                    if (next[i]) next[i] = { ...next[i], name: e.target.value };
+                                    return next;
+                                  })
+                                }
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label>Age</Label>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  max={120}
+                                  className="mt-1"
+                                  placeholder="25"
+                                  value={p.age}
+                                  onChange={(e) =>
+                                    setPassengerDetails((prev) => {
+                                      const next = [...prev];
+                                      if (next[i]) next[i] = { ...next[i], age: e.target.value };
+                                      return next;
+                                    })
+                                  }
+                                />
+                              </div>
+                              <div>
+                                <Label>Gender</Label>
+                                <select
+                                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                                  value={p.gender}
+                                  onChange={(e) =>
+                                    setPassengerDetails((prev) => {
+                                      const next = [...prev];
+                                      if (next[i]) next[i] = { ...next[i], gender: e.target.value };
+                                      return next;
+                                    })
+                                  }
+                                >
+                                  <option value="">Select</option>
+                                  <option value="Male">Male</option>
+                                  <option value="Female">Female</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
                     <div className="flex gap-3 pt-2">
                       <Button variant="outline" onClick={() => router.push("/flights")}>Back to results</Button>
                       <Button variant="accent" className="text-primary" onClick={() => setStep(2)} disabled={!canProceedPassenger}>

@@ -1,5 +1,11 @@
 import api from "@/lib/api";
 
+export interface PassengerDetail {
+  name: string;
+  age: string;
+  gender: string;
+}
+
 export interface CreateBookingPayload {
   name: string;
   email: string;
@@ -11,6 +17,8 @@ export interface CreateBookingPayload {
   checkOut: string;
   class: string;
   travelers: string;
+  /** When travelers > 1: name, age, gender for each passenger */
+  passengerDetails?: PassengerDetail[];
   giftcardCode?: string;
   giftcardAmountUsed?: number;
   /** Set when user is logged in so the booking appears in My Bookings */
