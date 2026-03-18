@@ -1,8 +1,9 @@
 import api from "@/lib/api";
 
 export interface PassengerDetail {
-  name: string;
-  age: string;
+  firstName: string;
+  lastName: string;
+  dob: string; // YYYY-MM-DD
   gender: string;
 }
 
@@ -17,7 +18,7 @@ export interface CreateBookingPayload {
   checkOut: string;
   class: string;
   travelers: string;
-  /** When travelers > 1: name, age, gender for each passenger */
+  /** When travelers > 1: first/last name, DOB, gender for each passenger */
   passengerDetails?: PassengerDetail[];
   giftcardCode?: string;
   giftcardAmountUsed?: number;

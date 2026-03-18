@@ -30,6 +30,21 @@ function isDomestic(from: string, to: string): boolean {
   return INDIAN_AIRPORTS.has((from || "").toUpperCase()) && INDIAN_AIRPORTS.has((to || "").toUpperCase());
 }
 
+function computeAgeFromDob(dob: string): number | null {
+  if (!dob || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return null;
+  const [y, m, d] = dob.split("-").map((x) => parseInt(x, 10));
+  if (!y || !m || !d) return null;
+  const birth = new Date(y, m - 1, d);
+  if (Number.isNaN(birth.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const hasHadBirthday =
+    now.getMonth() > birth.getMonth() || (now.getMonth() === birth.getMonth() && now.getDate() >= birth.getDate());
+  if (!hasHadBirthday) age -= 1;
+  if (age < 0 || age > 120) return null;
+  return age;
+}
+
 function BookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -62,10 +77,9 @@ function BookingContent() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  /** Per-passenger details when passengers > 1. For 1 passenger, name/email/phone only. */
-  const [passengerDetails, setPassengerDetails] = useState<{ name: string; age: string; gender: string }[]>(() =>
-    Array.from({ length: passengerCount }, () => ({ name: "", age: "", gender: "" }))
-  );
+  const [passengerDetails, setPassengerDetails] = useState<
+    { firstName: string; lastName: string; dob: string; gender: string }[]
+  >(() => Array.from({ length: passengerCount }, () => ({ firstName: "", lastName: "", dob: "", gender: "" })));
   const [seatClass] = useState(domestic ? "economy" : cabin);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "giftcard" | null>(null);
   const [giftCardLast4, setGiftCardLast4] = useState("");
@@ -83,8 +97,14 @@ function BookingContent() {
       setEmail(user.email || "");
       setPassengerDetails((prev) => {
         const next = prev.slice(0, passengerCount);
-        while (next.length < passengerCount) next.push({ name: "", age: "", gender: "" });
-        if (next[0]) next[0] = { ...next[0], name: next[0].name || fullName };
+        while (next.length < passengerCount) next.push({ firstName: "", lastName: "", dob: "", gender: "" });
+        if (next[0]) {
+          next[0] = {
+            ...next[0],
+            firstName: next[0].firstName || (user.first_name || ""),
+            lastName: next[0].lastName || (user.last_name || ""),
+          };
+        }
         return next;
       });
     }
@@ -93,7 +113,7 @@ function BookingContent() {
   useEffect(() => {
     setPassengerDetails((prev) => {
       if (prev.length === passengerCount) return prev;
-      const next = Array.from({ length: passengerCount }, (_, i) => prev[i] || { name: "", age: "", gender: "" });
+      const next = Array.from({ length: passengerCount }, (_, i) => prev[i] || { firstName: "", lastName: "", dob: "", gender: "" });
       return next;
     });
   }, [passengerCount]);
@@ -110,13 +130,16 @@ function BookingContent() {
   const giftCardToUse = matchedGiftCard && giftCardBalance >= totalAmount ? totalAmount : 0;
   const giftCardSufficient = matchedGiftCard != null && giftCardBalance >= totalAmount;
 
+  const primaryName =
+    [passengerDetails[0]?.firstName, passengerDetails[0]?.lastName].filter(Boolean).join(" ").trim() || name.trim();
+
   const canProceedPassenger =
     email.trim().length > 0 &&
     phone.trim().length >= 10 &&
-    (passengerCount === 1
-      ? name.trim().length > 0
-      : passengerDetails.length >= passengerCount &&
-        passengerDetails.slice(0, passengerCount).every((p) => p.name.trim().length > 0 && p.age.trim().length > 0 && p.gender.trim().length > 0));
+    passengerDetails.length >= passengerCount &&
+    passengerDetails
+      .slice(0, passengerCount)
+      .every((p) => p.firstName.trim().length > 0 && p.lastName.trim().length > 0 && p.dob.trim().length > 0 && p.gender.trim().length > 0);
 
   const handlePayWithRazorpay = async () => {
     setSubmitLoading(true);
@@ -128,7 +151,7 @@ function BookingContent() {
         orderId: order.order_id,
         amountPaise: order.amount,
         currency: order.currency,
-        userName: name,
+        userName: primaryName,
         userEmail: email,
         userContact: phone ? (phone.startsWith("+") ? phone : `+91${phone.replace(/\D/g, "").slice(-10)}`) : undefined,
         onSuccess: async () => {
@@ -154,8 +177,6 @@ function BookingContent() {
   };
 
   const submitBooking = async (giftcardCode?: string, giftcardAmountUsed?: number, paymentPin?: string) => {
-    const primaryName =
-      passengerCount === 1 ? name.trim() : passengerDetails[0]?.name.trim() || name.trim();
     const payload: CreateBookingPayload = {
       name: primaryName,
       email: email.trim(),
@@ -169,10 +190,11 @@ function BookingContent() {
       travelers: passengers,
     };
     if (user?.customer_id) payload.customerId = user.customer_id;
-    if (passengerCount > 1 && passengerDetails.length >= passengerCount) {
+    if (passengerDetails.length >= passengerCount) {
       payload.passengerDetails = passengerDetails.slice(0, passengerCount).map((p) => ({
-        name: p.name.trim(),
-        age: p.age.trim(),
+        firstName: p.firstName.trim(),
+        lastName: p.lastName.trim(),
+        dob: p.dob.trim(),
         gender: p.gender.trim(),
       }));
     }
@@ -302,14 +324,81 @@ function BookingContent() {
                   <CardContent className="p-6 space-y-4">
                     {passengerCount === 1 ? (
                       <>
-                        <div>
-                          <Label>Full name</Label>
-                          <Input
-                            className="mt-1"
-                            placeholder="John Smith"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                          />
+                        <p className="text-sm text-muted-foreground font-medium">Passenger details</p>
+                        <div className="rounded-lg border border-border p-4 space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>First name</Label>
+                              <Input
+                                className="mt-1"
+                                placeholder="John"
+                                value={passengerDetails[0]?.firstName || ""}
+                                onChange={(e) =>
+                                  setPassengerDetails((prev) => {
+                                    const next = [...prev];
+                                    next[0] = { ...(next[0] || { firstName: "", lastName: "", dob: "", gender: "" }), firstName: e.target.value };
+                                    return next;
+                                  })
+                                }
+                              />
+                            </div>
+                            <div>
+                              <Label>Last name</Label>
+                              <Input
+                                className="mt-1"
+                                placeholder="Smith"
+                                value={passengerDetails[0]?.lastName || ""}
+                                onChange={(e) =>
+                                  setPassengerDetails((prev) => {
+                                    const next = [...prev];
+                                    next[0] = { ...(next[0] || { firstName: "", lastName: "", dob: "", gender: "" }), lastName: e.target.value };
+                                    return next;
+                                  })
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Date of birth</Label>
+                              <Input
+                                type="date"
+                                className="mt-1"
+                                value={passengerDetails[0]?.dob || ""}
+                                onChange={(e) =>
+                                  setPassengerDetails((prev) => {
+                                    const next = [...prev];
+                                    next[0] = { ...(next[0] || { firstName: "", lastName: "", dob: "", gender: "" }), dob: e.target.value };
+                                    return next;
+                                  })
+                                }
+                              />
+                              {passengerDetails[0]?.dob ? (
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  Age: {computeAgeFromDob(passengerDetails[0].dob) ?? "—"}
+                                </p>
+                              ) : null}
+                            </div>
+                            <div>
+                              <Label>Gender</Label>
+                              <select
+                                className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                                value={passengerDetails[0]?.gender || ""}
+                                onChange={(e) =>
+                                  setPassengerDetails((prev) => {
+                                    const next = [...prev];
+                                    next[0] = { ...(next[0] || { firstName: "", lastName: "", dob: "", gender: "" }), gender: e.target.value };
+                                    return next;
+                                  })
+                                }
+                              >
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+                          </div>
                         </div>
                         <div>
                           <Label>Email</Label>
@@ -359,39 +448,58 @@ function BookingContent() {
                         {passengerDetails.slice(0, passengerCount).map((p, i) => (
                           <div key={i} className="rounded-lg border border-border p-4 space-y-3">
                             <p className="text-xs font-semibold text-muted-foreground">Passenger {i + 1}</p>
-                            <div>
-                              <Label>Full name</Label>
-                              <Input
-                                className="mt-1"
-                                placeholder="John Smith"
-                                value={p.name}
-                                onChange={(e) =>
-                                  setPassengerDetails((prev) => {
-                                    const next = [...prev];
-                                    if (next[i]) next[i] = { ...next[i], name: e.target.value };
-                                    return next;
-                                  })
-                                }
-                              />
-                            </div>
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <Label>Age</Label>
+                                <Label>First name</Label>
                                 <Input
-                                  type="number"
-                                  min={1}
-                                  max={120}
                                   className="mt-1"
-                                  placeholder="25"
-                                  value={p.age}
+                                  placeholder="John"
+                                  value={p.firstName}
                                   onChange={(e) =>
                                     setPassengerDetails((prev) => {
                                       const next = [...prev];
-                                      if (next[i]) next[i] = { ...next[i], age: e.target.value };
+                                      if (next[i]) next[i] = { ...next[i], firstName: e.target.value };
                                       return next;
                                     })
                                   }
                                 />
+                              </div>
+                              <div>
+                                <Label>Last name</Label>
+                                <Input
+                                  className="mt-1"
+                                  placeholder="Smith"
+                                  value={p.lastName}
+                                  onChange={(e) =>
+                                    setPassengerDetails((prev) => {
+                                      const next = [...prev];
+                                      if (next[i]) next[i] = { ...next[i], lastName: e.target.value };
+                                      return next;
+                                    })
+                                  }
+                                />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label>Date of birth</Label>
+                                <Input
+                                  type="date"
+                                  className="mt-1"
+                                  value={p.dob}
+                                  onChange={(e) =>
+                                    setPassengerDetails((prev) => {
+                                      const next = [...prev];
+                                      if (next[i]) next[i] = { ...next[i], dob: e.target.value };
+                                      return next;
+                                    })
+                                  }
+                                />
+                                {p.dob ? (
+                                  <p className="mt-1 text-xs text-muted-foreground">
+                                    Age: {computeAgeFromDob(p.dob) ?? "—"}
+                                  </p>
+                                ) : null}
                               </div>
                               <div>
                                 <Label>Gender</Label>
