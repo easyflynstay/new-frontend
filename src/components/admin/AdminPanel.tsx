@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { adminUpdatePnr, adminUploadTicket } from "@/services/booking";
+import { adminSendTrackingEmail, adminUpdatePnr, adminUploadTicket } from "@/services/booking";
 import { adminLogin, adminLogout, adminMe } from "@/services/admin";
 
 export function AdminPanel() {
@@ -29,6 +29,9 @@ export function AdminPanel() {
   const [ticketFile, setTicketFile] = useState<File | null>(null);
   const [ticketLoading, setTicketLoading] = useState(false);
   const [ticketMessage, setTicketMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [notifyBookingId, setNotifyBookingId] = useState("");
+  const [notifyLoading, setNotifyLoading] = useState(false);
+  const [notifyMessage, setNotifyMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,6 +119,33 @@ export function AdminPanel() {
       setTicketMessage({ type: "error", text: String(detail) });
     } finally {
       setTicketLoading(false);
+    }
+  };
+
+  const handleNotifySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const bid = notifyBookingId.trim();
+    if (!bid) {
+      setNotifyMessage({ type: "error", text: "Booking ID is required." });
+      return;
+    }
+    setNotifyMessage(null);
+    setNotifyLoading(true);
+    try {
+      const res = await adminSendTrackingEmail(bid);
+      setNotifyMessage({
+        type: "success",
+        text: `Tracking email sent to ${res.email} for ${bid}.`,
+      });
+      setNotifyBookingId("");
+    } catch (err: unknown) {
+      const res = err && typeof err === "object" && "response" in err
+        ? (err as { response?: { data?: { detail?: string } } }).response
+        : undefined;
+      const detail = res?.data?.detail ?? (err as Error)?.message ?? "Failed to send tracking email.";
+      setNotifyMessage({ type: "error", text: String(detail) });
+    } finally {
+      setNotifyLoading(false);
     }
   };
 
@@ -240,6 +270,31 @@ export function AdminPanel() {
                   </div>
                 )}
                 <Button type="submit" variant="accent" className="text-primary" disabled={ticketLoading}>{ticketLoading ? "Uploading…" : "Attach Ticket"}</Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2">
+            <CardHeader className="bg-primary text-white">
+              <h2 className="font-heading text-lg font-semibold">Send Tracking Email</h2>
+              <p className="text-sm text-white/80">
+                Re-send booking email with tracking link after PNR/ticket updates.
+              </p>
+            </CardHeader>
+            <CardContent className="p-6">
+              <form onSubmit={handleNotifySubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="notifyBookingId">Booking ID</Label>
+                  <Input id="notifyBookingId" value={notifyBookingId} onChange={(e) => setNotifyBookingId(e.target.value)} placeholder="e.g. BK-20240315-00001" className="mt-1" required />
+                </div>
+                {notifyMessage && (
+                  <div className={`rounded-lg px-4 py-3 text-sm ${notifyMessage.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                    {notifyMessage.text}
+                  </div>
+                )}
+                <Button type="submit" variant="accent" className="text-primary" disabled={notifyLoading}>
+                  {notifyLoading ? "Sending…" : "Send Tracking Email"}
+                </Button>
               </form>
             </CardContent>
           </Card>
