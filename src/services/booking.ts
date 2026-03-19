@@ -22,6 +22,7 @@ export interface CreateBookingPayload {
   passengerDetails?: PassengerDetail[];
   giftcardCode?: string;
   giftcardAmountUsed?: number;
+  giftcards?: { giftcardCode: string; amountUsed: number }[];
   /** Set when user is logged in so the booking appears in My Bookings */
   customerId?: string;
   /** Required when paying with gift card: 6-digit payment PIN */
@@ -132,6 +133,18 @@ export async function adminUploadTicket(
     `/booking/${encodeURIComponent(bookingId)}/ticket`,
     form,
     { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
+  );
+  return data;
+}
+
+/** Admin: re-send booking confirmation email with tracking link. Requires admin sign-in. */
+export async function adminSendTrackingEmail(
+  bookingId: string
+): Promise<{ ok: boolean; booking_id: string; email: string }> {
+  const { data } = await api.post<{ ok: boolean; booking_id: string; email: string }>(
+    `/booking/${encodeURIComponent(bookingId)}/notify`,
+    {},
+    { withCredentials: true }
   );
   return data;
 }

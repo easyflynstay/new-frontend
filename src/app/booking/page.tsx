@@ -83,6 +83,7 @@ function BookingContent() {
   const [seatClass] = useState(domestic ? "economy" : cabin);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "giftcard" | null>(null);
   const [giftCardLast4, setGiftCardLast4] = useState("");
+  const [selectedGiftCardCodes, setSelectedGiftCardCodes] = useState<string[]>([]);
   const [userGiftCards, setUserGiftCards] = useState<GiftCard[]>([]);
   const [bookingId, setBookingId] = useState("");
   const [trackingLink, setTrackingLink] = useState("");
@@ -123,12 +124,41 @@ function BookingContent() {
     getMyGiftCards().then(setUserGiftCards).catch(() => setUserGiftCards([]));
   }, [user]);
 
-  const matchedGiftCard = user && giftCardLast4.length === 4
-    ? userGiftCards.find((c) => c.status === "active" && c.code.slice(-4).toUpperCase() === giftCardLast4.toUpperCase().trim())
-    : null;
-  const giftCardBalance = matchedGiftCard ? Number(matchedGiftCard.balance) : 0;
-  const giftCardToUse = matchedGiftCard && giftCardBalance >= totalAmount ? totalAmount : 0;
-  const giftCardSufficient = matchedGiftCard != null && giftCardBalance >= totalAmount;
+  const activeGiftCards = userGiftCards
+    .filter((c) => c.status === "active")
+    .slice()
+    .sort((a, b) => Number(b.balance) - Number(a.balance));
+
+  const manualMatchedGiftCard =
+    user && giftCardLast4.length === 4
+      ? activeGiftCards.find(
+        (c) => c.code.slice(-4).toUpperCase() === giftCardLast4.toUpperCase().trim()
+      ) || null
+      : null;
+
+  const selectedCards =
+    selectedGiftCardCodes.length > 0
+      ? activeGiftCards.filter((c) => selectedGiftCardCodes.includes(c.code))
+      : manualMatchedGiftCard
+        ? [manualMatchedGiftCard]
+        : [];
+
+  const allocations = (() => {
+    let remaining = totalAmount;
+    const out: Array<{ code: string; amountUsed: number; balance: number; last4: string }> = [];
+    for (const c of selectedCards) {
+      const bal = Number(c.balance);
+      if (remaining <= 0) break;
+      const use = Math.max(0, Math.min(bal, remaining));
+      if (use > 0) {
+        out.push({ code: c.code, amountUsed: use, balance: bal, last4: c.code.slice(-4).toUpperCase() });
+        remaining -= use;
+      }
+    }
+    return { items: out, remaining, totalUsed: totalAmount - remaining };
+  })();
+
+  const giftCardSufficient = allocations.remaining <= 0 && allocations.items.length > 0;
 
   const primaryName =
     [passengerDetails[0]?.firstName, passengerDetails[0]?.lastName].filter(Boolean).join(" ").trim() || name.trim();
@@ -176,7 +206,12 @@ function BookingContent() {
     }
   };
 
-  const submitBooking = async (giftcardCode?: string, giftcardAmountUsed?: number, paymentPin?: string) => {
+  const submitBooking = async (
+    giftcardCode?: string,
+    giftcardAmountUsed?: number,
+    paymentPin?: string,
+    giftcards?: { giftcardCode: string; amountUsed: number }[]
+  ) => {
     const payload: CreateBookingPayload = {
       name: primaryName,
       email: email.trim(),
@@ -198,7 +233,10 @@ function BookingContent() {
         gender: p.gender.trim(),
       }));
     }
-    if (giftcardCode && giftcardAmountUsed != null) {
+    if (giftcards && giftcards.length > 0) {
+      payload.giftcards = giftcards;
+      if (paymentPin) payload.paymentPin = paymentPin;
+    } else if (giftcardCode && giftcardAmountUsed != null) {
       payload.giftcardCode = giftcardCode;
       payload.giftcardAmountUsed = giftcardAmountUsed;
       if (paymentPin) payload.paymentPin = paymentPin;
@@ -218,8 +256,8 @@ function BookingContent() {
   };
 
   const handlePayWithGiftCard = () => {
-    if (!matchedGiftCard || !giftCardSufficient) {
-      setPaymentError("Enter last 4 characters of a gift card with balance ≥ ₹" + totalAmount.toLocaleString() + ".");
+    if (!giftCardSufficient) {
+      setPaymentError("Select gift cards with combined balance ≥ ₹" + totalAmount.toLocaleString() + ".");
       return;
     }
     setPaymentError("");
@@ -227,11 +265,18 @@ function BookingContent() {
   };
 
   const handleGiftCardPinConfirm = async (pin: string) => {
-    if (!matchedGiftCard) return;
+    if (!giftCardSufficient) return;
     setSubmitLoading(true);
     setPaymentError("");
     try {
-      await submitBooking(matchedGiftCard.code, giftCardToUse, pin);
+      const giftcardsPayload = allocations.items.map((it) => ({ giftcardCode: it.code, amountUsed: it.amountUsed }));
+      if (giftcardsPayload.length > 1) {
+        await submitBooking(undefined, undefined, pin, giftcardsPayload);
+      } else if (giftcardsPayload.length === 1) {
+        await submitBooking(giftcardsPayload[0].giftcardCode, giftcardsPayload[0].amountUsed, pin);
+      } else {
+        throw new Error("No gift cards selected.");
+      }
       setShowGiftCardPin(false);
     } catch (err: unknown) {
       const detail = err && typeof err === "object" && "response" in err
@@ -600,22 +645,101 @@ function BookingContent() {
                             animate={{ opacity: 1, height: "auto" }}
                             className="border border-border rounded-lg p-4 space-y-3"
                           >
-                            <Label>Last 4 characters of gift card code</Label>
-                            <Input
-                              maxLength={4}
-                              placeholder="e.g. 80IX"
-                              value={giftCardLast4}
-                              onChange={(e) => setGiftCardLast4(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 4).toUpperCase())}
-                              className="font-mono text-lg w-28"
-                            />
-                            {matchedGiftCard && (
+                            <div className="space-y-2">
+                              <Label>Select a gift card</Label>
+                              {activeGiftCards.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No active gift cards found in your account.</p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {activeGiftCards.map((c) => {
+                                    const last4 = c.code.slice(-4).toUpperCase();
+                                    const balance = Number(c.balance);
+                                    const checked = selectedGiftCardCodes.includes(c.code);
+
+                                    return (
+                                      <label
+                                        key={c.giftcard_id ?? c.code}
+                                        className={cn(
+                                          "flex cursor-pointer items-center justify-between gap-4 rounded-md border p-3 transition-colors",
+                                          checked ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
+                                        )}
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => {
+                                              setSelectedGiftCardCodes((prev) => {
+                                                const next = prev.includes(c.code)
+                                                  ? prev.filter((x) => x !== c.code)
+                                                  : [...prev, c.code];
+                                                return next;
+                                              });
+                                              setGiftCardLast4("");
+                                            }}
+                                            className="h-4 w-4 accent-[hsl(var(--accent))]"
+                                          />
+                                          <div className="min-w-0">
+                                            <p className="font-mono text-sm font-semibold text-foreground">
+                                              •••• {last4}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                              Balance: ₹{balance.toLocaleString()}
+                                            </p>
+                                          </div>
+                                        </div>
+
+                                        <div className="shrink-0 text-right">
+                                          <span className="text-xs text-muted-foreground">
+                                            {checked ? "Selected" : "Tap to select"}
+                                          </span>
+                                        </div>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="pt-2 border-t border-border/60">
+                              <Label className="text-xs text-muted-foreground">Or enter last 4 characters manually</Label>
+                              <div className="mt-2 flex items-center gap-3">
+                                <Input
+                                  maxLength={4}
+                                  placeholder="e.g. 80IX"
+                                  value={giftCardLast4}
+                                  onChange={(e) => {
+                                    const next = e.target.value
+                                      .replace(/[^A-Za-z0-9]/g, "")
+                                      .slice(0, 4)
+                                      .toUpperCase();
+                                    setGiftCardLast4(next);
+                                    setSelectedGiftCardCodes([]);
+                                  }}
+                                  className="font-mono text-lg w-32"
+                                />
+                                <span className="text-xs text-muted-foreground">We’ll match it to your active cards.</span>
+                              </div>
+                            </div>
+                            {allocations.items.length > 0 && (
                               <div className="text-sm">
-                                <p className="text-muted-foreground">Balance: ₹{giftCardBalance.toLocaleString()}</p>
-                                {giftCardSufficient ? (
-                                  <p className="font-medium text-emerald-600">Full amount covered by gift card.</p>
-                                ) : giftCardBalance > 0 ? (
-                                  <p className="text-amber-600 text-xs">Insufficient balance. Need ₹{totalAmount.toLocaleString()}. Use Pay Online or another card.</p>
-                                ) : null}
+                                <p className="text-muted-foreground">
+                                  Selected total: ₹{allocations.totalUsed.toLocaleString()}{" "}
+                                  {allocations.remaining > 0 ? (
+                                    <span className="text-amber-600 text-xs">
+                                      (Need ₹{allocations.remaining.toLocaleString()} more)
+                                    </span>
+                                  ) : (
+                                    <span className="font-medium text-emerald-600">(Covers full amount)</span>
+                                  )}
+                                </p>
+                                <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                                  {allocations.items.map((it) => (
+                                    <p key={it.code} className="font-mono">
+                                      •••• {it.last4}: will use ₹{Math.round(it.amountUsed).toLocaleString()} (bal ₹{it.balance.toLocaleString()})
+                                    </p>
+                                  ))}
+                                </div>
                               </div>
                             )}
                             <Button
