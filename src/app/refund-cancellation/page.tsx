@@ -28,7 +28,7 @@ export default function RefundCancellationPage() {
             </section>
             <section>
               <h2 className="font-heading text-xl font-semibold text-foreground">5. Contact</h2>
-              <p className="mt-2">For cancellation or refund requests, contact us at Support@easyflynstay.com or +91 63 66 02 88 63. Our team will guide you through the process and applicable terms.</p>
+              <p className="mt-2">For cancellation or refund requests, contact us at support@easyflynstay.com or +91 7090005700. Our team will guide you through the process and applicable terms.</p>
             </section>
           </div>
         </div>

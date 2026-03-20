@@ -31,8 +31,8 @@ export function Footer() {
           </div>
           <div>
             <h4 className="font-heading text-sm font-semibold uppercase">Contact</h4>
-            <p className="mt-2 text-sm text-white/80">+91 63 66 02 88 63</p>
-            <p className="text-sm text-white/80">Support@easyflynstay.com</p>
+            <p className="mt-2 text-sm text-white/80">+91 7090005700</p>
+            <p className="text-sm text-white/80">support@easyflynstay.com</p>
             <p className="mt-1 text-sm text-white/80">Ground Floor, Plot No: 128-P2, Near Ginger Hotel, EPIP Zone, Whitefield, Bengaluru, Karnataka 560066</p>
           </div>
           <div>

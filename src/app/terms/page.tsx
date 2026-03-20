@@ -40,7 +40,7 @@ export default function TermsPage() {
             </section>
             <section>
               <h2 className="font-heading text-xl font-semibold text-foreground">8. Contact</h2>
-              <p className="mt-2">For questions about these Terms, contact us at Support@easyflynstay.com or +91 63 66 02 88 63.</p>
+              <p className="mt-2">For questions about these Terms, contact us at support@easyflynstay.com or +91 7090005700.</p>
             </section>
           </div>
         </div>

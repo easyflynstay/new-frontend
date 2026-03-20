@@ -28,7 +28,7 @@ export default function PrivacyPage() {
             </section>
             <section>
               <h2 className="font-heading text-xl font-semibold text-foreground">5. Your Rights</h2>
-              <p className="mt-2">You may request access to, correction of, or deletion of your personal data. You may also opt out of marketing communications. To exercise these rights, contact us at Support@easyflynstay.com.</p>
+              <p className="mt-2">You may request access to, correction of, or deletion of your personal data. You may also opt out of marketing communications. To exercise these rights, contact us at support@easyflynstay.com.</p>
             </section>
             <section>
               <h2 className="font-heading text-xl font-semibold text-foreground">6. Cookies and Tracking</h2>
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
             </section>
             <section>
               <h2 className="font-heading text-xl font-semibold text-foreground">7. Contact</h2>
-              <p className="mt-2">For privacy-related queries, contact us at Support@easyflynstay.com or +91 63 66 02 88 63. Address: Ground Floor, Plot No: 128-P2, Near Ginger Hotel, EPIP Zone, Whitefield, Bengaluru, Karnataka 560066.</p>
+              <p className="mt-2">For privacy-related queries, contact us at support@easyflynstay.com or +91 7090005700. Address: Ground Floor, Plot No: 128-P2, Near Ginger Hotel, EPIP Zone, Whitefield, Bengaluru, Karnataka 560066.</p>
             </section>
           </div>
         </div>
