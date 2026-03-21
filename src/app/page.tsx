@@ -185,7 +185,7 @@ export default function HomePage() {
               <span className="text-sm font-medium text-accent">PREMIUM TRAVEL EXPERIENCE</span>
             </motion.div>
             <h1 className="font-heading text-4xl font-bold text-white md:text-5xl lg:text-6xl leading-tight">
-              Fly International & Business Domestic
+              Fly and Stay - With Class, Luxury and Ease
               <br />
               <span className="text-accent">For Less</span>
             </h1>
@@ -392,7 +392,7 @@ export default function HomePage() {
                 <h2 className="font-heading text-3xl font-bold md:text-4xl">Premium Gift Cards</h2>
                 <p className="mt-4 text-lg text-white/70 max-w-md">Give the gift of luxury travel. Three exclusive tiers — Prime, Signature & Elite — crafted for every occasion.</p>
                 <Link href="/gift-cards" className="mt-6 inline-block">
-                  <Button variant="accent" size="lg" className="text-primary font-semibold">
+                  <Button className="h-12 border-2 border-accent bg-accent px-8 text-base font-semibold text-primary hover:bg-accent/90">
                     Explore Gift Cards
                     <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                   </Button>
@@ -457,10 +457,10 @@ export default function HomePage() {
             <p className="mt-4 text-white/90 text-lg">Get the best fares on business and first class with Easyflynstay. Track your booking anytime.</p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Link href="/">
-                <Button variant="accent" size="lg" className="text-primary font-semibold shadow-lg">Search Flights</Button>
+                <Button className="h-12 border-2 border-accent bg-accent px-8 text-base font-semibold text-primary shadow-lg hover:bg-accent/90">Search Flights</Button>
               </Link>
               <Link href="/track-booking">
-                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-primary">Track Booking</Button>
+                <Button className="h-12 border-2 border-white bg-transparent px-8 text-base text-white hover:bg-white hover:text-primary">Track Booking</Button>
               </Link>
             </div>
           </motion.div>
