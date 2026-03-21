@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Playfair_Display, Inter } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
@@ -27,6 +28,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        <Script
+          id="travelpayouts-verification"
+          strategy="afterInteractive"
+          data-noptimize="1"
+          data-cfasync="false"
+          data-wpfc-render="false"
+        >
+          {`(function () {
+              var script = document.createElement("script");
+              script.async = 1;
+              script.src = 'https://emrldtp.com/NTEwMTc0.js?t=510174';
+              document.head.appendChild(script);
+          })();`}
+        </Script>
+      </head>
       <body className={`${playfair.variable} ${inter.variable} font-body antialiased`}>
         <Providers>{children}</Providers>
       </body>
