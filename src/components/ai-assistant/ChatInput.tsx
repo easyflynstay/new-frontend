@@ -4,9 +4,10 @@ import React, { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { COLORS } from "@/lib/theme";
+import { buildApiUrl } from "@/lib/api-base";
 
 const PLACEHOLDER_TEXT = "Please enter your details";
-const STT_URL = "/api/speech/transcribe";
+const STT_URL = buildApiUrl("/speech/transcribe");
 
 interface ChatInputProps {
   onSend: (text: string) => void;

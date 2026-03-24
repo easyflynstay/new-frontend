@@ -119,7 +119,7 @@ function AirportInput({
           }}
           placeholder={placeholder}
           autoComplete="off"
-          className="h-12 w-full rounded-lg border border-border/80 bg-white/80 pl-10 pr-4 text-sm font-medium shadow-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all hover:border-primary/30"
+          className="h-12 w-full rounded-none border border-border/80 bg-white/80 pl-10 pr-4 text-sm font-medium shadow-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all hover:border-primary/30"
         />
         {loading && focused && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -135,7 +135,7 @@ function AirportInput({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 right-0 top-full z-[100] mt-2 max-h-72 overflow-auto rounded-xl border border-border/80 bg-white shadow-xl shadow-black/10"
+            className="absolute left-0 right-0 top-full z-[100] mt-2 max-h-72 overflow-auto rounded-none border border-border/80 bg-white shadow-xl shadow-black/10"
           >
             {results.map((airport, idx) => (
               <button
@@ -200,12 +200,12 @@ function CustomSelect({
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex h-12 w-full items-center gap-3 rounded-lg border bg-white/80 px-4 text-sm font-medium shadow-sm transition-all",
+          "flex h-12 w-full items-center gap-3 rounded-none border bg-white/80 px-4 text-sm font-medium shadow-sm transition-all",
           open ? "border-primary/50 bg-white ring-2 ring-primary/20" : "border-border/80 hover:border-primary/30 hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         )}
       >
         {icon && (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-primary/10 text-primary">
             {icon}
           </span>
         )}
@@ -230,7 +230,7 @@ function CustomSelect({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 right-0 top-full z-[100] mt-2 overflow-hidden rounded-xl border border-border/80 bg-white shadow-xl shadow-black/10"
+            className="absolute left-0 right-0 top-full z-[100] mt-2 overflow-hidden rounded-none border border-border/80 bg-white shadow-xl shadow-black/10"
           >
             {options.map((opt) => (
               <button
@@ -353,13 +353,13 @@ function PremiumDateInput({
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex h-12 w-full items-center gap-3 rounded-lg border bg-white/80 px-4 text-sm font-medium transition-all text-left shadow-sm",
+          "flex h-12 w-full items-center gap-3 rounded-none border bg-white/80 px-4 text-sm font-medium transition-all text-left shadow-sm",
           value ? "text-foreground" : "text-muted-foreground/70",
           "border-border/80 hover:border-primary/40 hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
           open && "border-primary/50 bg-white ring-2 ring-primary/20"
         )}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-primary/10 text-primary">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
@@ -384,14 +384,14 @@ function PremiumDateInput({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-0 top-full z-[100] mt-2 overflow-hidden rounded-xl border border-border/80 bg-white shadow-xl shadow-black/10"
+            className="absolute left-0 top-full z-[100] mt-2 overflow-hidden rounded-none border border-border/80 bg-white shadow-xl shadow-black/10"
           >
             <div className="border-b border-border/50 bg-muted/30 px-4 py-3">
               <div className="flex items-center justify-between">
                 <button
                   type="button"
                   onClick={prevMonth}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-white hover:text-foreground transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-none text-muted-foreground hover:bg-white hover:text-foreground transition-colors"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -403,7 +403,7 @@ function PremiumDateInput({
                 <button
                   type="button"
                   onClick={nextMonth}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-white hover:text-foreground transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-none text-muted-foreground hover:bg-white hover:text-foreground transition-colors"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -431,7 +431,7 @@ function PremiumDateInput({
                       disabled={isDisabled}
                       onClick={() => !isDisabled && pick(viewDate.getFullYear(), viewDate.getMonth(), day)}
                       className={cn(
-                        "flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors",
+                        "flex h-9 w-9 items-center justify-center rounded-none text-sm font-medium transition-colors",
                         isDisabled && "cursor-not-allowed text-muted-foreground/40",
                         !isDisabled && "hover:bg-primary/10 hover:text-primary",
                         isToday && !isSelected && "bg-muted text-foreground font-semibold",
@@ -490,11 +490,11 @@ export function HeroSearch() {
     const dep = departure.trim();
 
     if (!origin) {
-      setFormError("Please select a city or airport for From.");
+      setFormError("Please select origin city or airport");
       return;
     }
     if (!destination) {
-      setFormError("Please select a city or airport for To.");
+      setFormError("Please select destination city or airport");
       return;
     }
     if (origin.length !== 3 || destination.length !== 3) {
@@ -559,16 +559,16 @@ export function HeroSearch() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
-      className="relative w-full max-w-5xl overflow-visible rounded-2xl border border-slate-200/80 bg-white shadow-2xl shadow-slate-900/10 backdrop-blur-sm"
+      className="relative w-full max-w-5xl overflow-visible border border-slate-200/80 bg-white shadow-2xl shadow-slate-900/10 backdrop-blur-sm"
     >
       {/* Trip type (left) + International / Business Domestic (rightmost) */}
       <div className="flex flex-col gap-3 border-b border-slate-200/80 bg-amber-50/90 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 sm:px-5">
-        <div className="flex shrink-0 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
+        <div className="flex shrink-0 rounded-none border border-slate-200 bg-white p-0.5 shadow-sm">
           <button
             type="button"
             onClick={() => setTripType("oneway")}
             className={cn(
-              "flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold tracking-wide transition-all whitespace-nowrap",
+              "flex items-center gap-2 rounded-none px-4 py-2.5 text-sm font-semibold tracking-wide transition-all whitespace-nowrap",
               tripType === "oneway"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -583,7 +583,7 @@ export function HeroSearch() {
             type="button"
             onClick={() => setTripType("round")}
             className={cn(
-              "flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold tracking-wide transition-all whitespace-nowrap",
+              "flex items-center gap-2 rounded-none px-4 py-2.5 text-sm font-semibold tracking-wide transition-all whitespace-nowrap",
               tripType === "round"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -595,12 +595,12 @@ export function HeroSearch() {
             Round Trip
           </button>
         </div>
-        <div className="flex shrink-0 items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm sm:ml-auto">
+        <div className="flex shrink-0 items-center rounded-none border border-slate-200 bg-white p-0.5 shadow-sm sm:ml-auto">
           <button
             type="button"
             onClick={() => setTripScope("international")}
             className={cn(
-              "whitespace-nowrap rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all",
+              "whitespace-nowrap rounded-none px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all",
               tripScope === "international"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -612,7 +612,7 @@ export function HeroSearch() {
             type="button"
             onClick={() => setTripScope("domestic")}
             className={cn(
-              "whitespace-nowrap rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all",
+              "whitespace-nowrap rounded-none px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all",
               tripScope === "domestic"
                 ? "bg-accent text-primary shadow-sm hover:bg-accent/90"
                 : "text-muted-foreground hover:text-foreground"
@@ -655,7 +655,7 @@ export function HeroSearch() {
             whileTap={{ scale: 0.9 }}
             transition={{ duration: 0.3 }}
             onClick={swapCities}
-            className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center self-center border-2 border-accent bg-white text-accent shadow-md hover:bg-accent hover:text-white transition-colors rounded-lg"
+            className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center self-center border-2 border-accent bg-white text-accent shadow-md hover:bg-accent hover:text-white transition-colors rounded-none"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />

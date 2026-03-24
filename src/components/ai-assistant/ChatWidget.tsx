@@ -6,8 +6,9 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatWindow } from "./ChatWindow";
 import type { ChatMessageData, UserState } from "./types";
+import { buildApiUrl } from "@/lib/api-base";
 
-const API_URL = "/api/chat/message/stream";
+const API_URL = buildApiUrl("/chat/message/stream");
 const DEFAULT_LANGUAGE_CODE = "en-IN";
 
 export function ChatWidget() {
@@ -43,7 +44,7 @@ export function ChatWidget() {
 
   const fetchSessionParams = useCallback(async () => {
     try {
-      const res = await fetch(`/api/chat/session/${sessionId}/params`);
+      const res = await fetch(buildApiUrl(`/chat/session/${sessionId}/params`));
       if (!res.ok) {
         setUserState(null);
         setIsSearchReady(false);
@@ -184,7 +185,7 @@ export function ChatWidget() {
 
   const handleRestart = useCallback(() => {
     if (abortRef.current) abortRef.current.abort();
-    fetch("/api/chat/restart", {
+    fetch(buildApiUrl("/chat/restart"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ session_id: sessionId }),

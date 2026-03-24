@@ -1,4 +1,6 @@
-const STT_URL = "/api/speech/transcribe";
+import { buildApiUrl } from "@/lib/api-base";
+
+const STT_URL = buildApiUrl("/speech/transcribe");
 
 export async function transcribeAudio(
   blob: Blob,

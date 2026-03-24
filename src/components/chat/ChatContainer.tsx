@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChatInput } from "./ChatInput";
 import { ChatWindow, ChatMessageData } from "./ChatWindow";
 import { ChatAssistantHeader } from "./ChatAssistantHeader";
+import { buildApiUrl } from "@/lib/api-base";
 
-const CHAT_STREAM_URL = "/api/chat/message/stream";
+const CHAT_STREAM_URL = buildApiUrl("/chat/message/stream");
 
 type ChatContainerMode = "page" | "widget";
 
@@ -47,7 +48,7 @@ export function ChatContainer({ mode = "page", onSearchFlights }: ChatContainerP
 
   const fetchExtractedParams = useCallback(async () => {
     try {
-      const res = await fetch(`/api/chat/session/${sessionId}/params`);
+      const res = await fetch(buildApiUrl(`/chat/session/${sessionId}/params`));
       if (!res.ok) {
         setExtracted(null);
         return;

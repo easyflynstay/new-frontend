@@ -26,7 +26,7 @@ export function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-card">
+    <header className="sticky top-0 z-50 w-full bg-card">
       <AnimatePresence>
         {!advisoryClosed && (
           <motion.div
