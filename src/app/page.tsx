@@ -162,11 +162,12 @@ export default function HomePage() {
         {/* Hero */}
         <section className="relative min-h-[900px] overflow-visible">
           <Image
-            src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&h=1000&fit=crop&q=90"
-            alt="Travel adventure"
+            src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&h=1000&fit=crop&q=90&auto=format"
+            alt="Aircraft wing above clouds at sunset — premium air travel"
             fill
             priority
-            className="object-cover"
+            sizes="100vw"
+            className="object-cover object-[center_35%]"
           />
           <div className="hero-overlay absolute inset-0" />
           <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-transparent" />

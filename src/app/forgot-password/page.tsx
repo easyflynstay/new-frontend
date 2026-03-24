@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
@@ -13,6 +12,18 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { forgotPassword } from "@/services/auth";
+import { AuthMarketingPanel } from "@/components/auth/AuthMarketingPanel";
+import { AuthBrandLogo } from "@/components/auth/AuthBrandLogo";
+import {
+  authCardClassName,
+  authFormColumnClassName,
+  authInputClassName,
+  authLabelClassName,
+  authMainClassName,
+  authPrimaryButtonClassName,
+  authErrorAlertClassName,
+  authSuccessAlertClassName,
+} from "@/lib/auth-page-ui";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -45,86 +56,74 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <Navbar />
-      <main className="flex-1 flex">
-        <div className="hidden lg:block lg:w-1/2 relative">
-          <Image
-            src="https://images.unsplash.com/photo-1540339832862-474599807836?w=800&h=1000&fit=crop"
-            alt="Travel"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-primary/60" />
-          <div className="absolute inset-0 flex items-center justify-center p-12">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-white text-center"
-            >
-              <div className="flex justify-center mb-6">
-                <div className="flex h-16 w-16 items-center justify-center bg-accent">
-                  <span className="font-heading text-3xl font-bold text-primary">E</span>
-                </div>
-              </div>
-              <h2 className="font-heading text-3xl font-bold">Reset your password</h2>
-              <p className="mt-3 text-white/80 max-w-sm">Enter your email and we&apos;ll send you a link to set a new password.</p>
-            </motion.div>
-          </div>
-        </div>
+      <main className={authMainClassName}>
+        <AuthMarketingPanel
+          imageSrc="https://images.unsplash.com/photo-1540339832862-474599807836?w=800&h=1000&fit=crop"
+          imageAlt="Premium travel"
+          title="Reset your password"
+          description="We’ll email you a secure link to choose a new password."
+        />
 
-        <div className="flex-1 flex items-center justify-center py-16 px-4">
+        <div className={authFormColumnClassName}>
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-md"
           >
-            <Card className="border-2 overflow-hidden">
-              <CardHeader className="text-center pb-2">
-                <div className="flex justify-center mb-4 lg:hidden">
-                  <div className="flex h-12 w-12 items-center justify-center bg-primary">
-                    <span className="font-heading text-xl font-bold text-accent">E</span>
-                  </div>
+            <Card className={authCardClassName}>
+              <CardHeader className="space-y-1 pb-2 text-center">
+                <div className="mb-5 flex justify-center lg:hidden">
+                  <AuthBrandLogo variant="compact" />
                 </div>
-                <h1 className="font-heading text-2xl font-semibold text-foreground">Forgot password</h1>
-                <p className="text-sm text-muted-foreground">Enter the email linked to your account.</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-accent">Security</p>
+                <h1 className="font-heading text-3xl font-semibold tracking-tight text-primary">Forgot password</h1>
+                <p className="text-sm text-muted-foreground">Use the email on your account.</p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pb-8">
                 {sent ? (
-                  <div className="space-y-4">
-                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm">
-                      If an account exists for this email, we&apos;ve sent a link to reset your password. Check your inbox and spam folder.
+                  <div className="space-y-5">
+                    <div role="status" className={authSuccessAlertClassName}>
+                      If an account exists for this email, we&apos;ve sent a link to reset your password. Check your
+                      inbox and spam folder.
                     </div>
-                    <Link href="/login">
-                      <Button variant="accent" className="w-full text-primary">Back to Sign in</Button>
+                    <Link href="/login" className="block">
+                      <Button variant="accent" className={authPrimaryButtonClassName}>
+                        Back to sign in
+                      </Button>
                     </Link>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <form onSubmit={handleSubmit} className="space-y-5">
                     {error && (
-                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
+                      <div role="alert" className={authErrorAlertClassName}>
                         {error}
                       </div>
                     )}
-                    <div>
-                      <Label htmlFor="email">Email</Label>
+                    <div className="space-y-1">
+                      <Label htmlFor="forgot-email" className={authLabelClassName}>
+                        Email
+                      </Label>
                       <Input
-                        id="email"
+                        id="forgot-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="mt-1"
+                        className={authInputClassName}
+                        autoComplete="email"
                         required
                       />
                     </div>
-                    <Button type="submit" variant="accent" className="w-full text-primary" disabled={loading}>
+                    <Button type="submit" variant="accent" className={authPrimaryButtonClassName} disabled={loading}>
                       {loading ? "Sending…" : "Send reset link"}
                     </Button>
-                    <p className="text-center text-sm text-muted-foreground">
-                      <Link href="/login" className="font-medium text-accent hover:underline">Back to Sign in</Link>
+                    <p className="border-t border-border/80 pt-6 text-center text-sm text-muted-foreground">
+                      <Link href="/login" className="font-semibold text-accent hover:underline">
+                        Back to sign in
+                      </Link>
                     </p>
                   </form>
                 )}

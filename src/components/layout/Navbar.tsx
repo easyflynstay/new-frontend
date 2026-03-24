@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFlipOverlay } from "@/hooks/useFlipOverlay";
 
 const navLinks = [
   { href: "/", label: "HOME" },
@@ -24,37 +25,42 @@ export function Navbar() {
   const [advisoryClosed, setAdvisoryClosed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { wrapperRef: userMenuWrapperRef, panelRef: userMenuPanelRef, placement: userMenuPlacement, positionClass: userMenuPositionClass } =
+    useFlipOverlay(userMenuOpen, { align: "right", fallbackHeight: 280 });
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-card">
-      <AnimatePresence>
-        {!advisoryClosed && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="flex items-center justify-center gap-2 bg-accent px-4 py-2 text-sm text-primary">
-              <span className="animate-shimmer">Travel Advisory: Check your booking status for any route updates.</span>
-              <button type="button" aria-label="Close advisory" className="ml-2 p-1 hover:bg-accent-foreground/10" onClick={() => setAdvisoryClosed(true)}>×</button>
+    <>
+      {/* Scrolls away with page — only the navy nav bar sticks below */}
+      <header className="w-full bg-card">
+        <AnimatePresence>
+          {!advisoryClosed && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="flex items-center justify-center gap-2 bg-accent px-4 py-2 text-sm text-primary">
+                <span className="animate-shimmer">Travel Advisory: Check your booking status for any route updates.</span>
+                <button type="button" aria-label="Close advisory" className="ml-2 p-1 hover:bg-accent-foreground/10" onClick={() => setAdvisoryClosed(true)}>×</button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div className="border-b border-border bg-white px-4 py-3">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
+            <Link href="/" className="flex items-center gap-3">
+              <Image src="/logo-full.svg" alt="Easyflynstay" width={320} height={80} className="h-16 w-auto sm:h-20 sm:w-auto" priority />
+            </Link>
+            <div className="flex items-center gap-4 text-sm text-charcoal">
+              <span className="hidden sm:inline font-medium">PREMIUM TRAVEL EXPERIENCE</span>
+              <span className="hidden sm:inline font-medium">24/7 CONCIERGE</span>
+              <span className="font-semibold text-accent">+91 7090005700</span>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <div className="border-b border-border bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo-full.svg" alt="Easyflynstay" width={320} height={80} className="h-16 w-auto sm:h-20 sm:w-auto" priority />
-          </Link>
-          <div className="flex items-center gap-4 text-sm text-charcoal">
-            <span className="hidden sm:inline font-medium">PREMIUM TRAVEL EXPERIENCE</span>
-            <span className="hidden sm:inline font-medium">24/7 CONCIERGE</span>
-            <span className="font-semibold text-accent">+91 7090005700</span>
           </div>
         </div>
-      </div>
-      <nav className="bg-primary">
+      </header>
+      <nav className="sticky top-0 z-50 w-full border-b border-black/10 bg-primary shadow-md">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-1 px-4 py-2">
           <button
             type="button"
@@ -94,8 +100,10 @@ export function Navbar() {
           </div>
           <div className="ml-auto flex items-center gap-2">
             {user ? (
-              <div className="relative">
+              <div ref={userMenuWrapperRef} className="relative">
                 <button
+                  type="button"
+                  data-flip-anchor
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10 transition-colors"
                 >
@@ -110,10 +118,14 @@ export function Navbar() {
                 <AnimatePresence>
                   {userMenuOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: -5 }}
+                      ref={userMenuPanelRef}
+                      initial={{ opacity: 0, y: userMenuPlacement === "bottom" ? -6 : 6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="absolute right-0 top-full mt-1 w-48 bg-white border border-border shadow-card-hover z-50"
+                      exit={{ opacity: 0, y: userMenuPlacement === "bottom" ? -4 : 4 }}
+                      className={cn(
+                        "absolute z-[70] w-48 border border-border bg-white shadow-card-hover",
+                        userMenuPositionClass
+                      )}
                     >
                       <div className="px-4 py-3 border-b border-border">
                         <p className="text-sm font-semibold text-foreground">{user.first_name} {user.last_name}</p>
@@ -168,6 +180,6 @@ export function Navbar() {
           </div>
         </div>
       </nav>
-    </header>
+    </>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,6 +19,7 @@ import { createBookingOrder, createBooking, type CreateBookingPayload } from "@/
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
 import { usdToInr, formatInr } from "@/lib/currency";
 import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
+import { PremiumDateInput } from "@/components/flights/flight-search-fields";
 
 const INDIAN_AIRPORTS = new Set([
   "DEL", "BOM", "BLR", "MAA", "CCU", "HYD", "COK", "GOI", "AMD", "TRV", "IXC",
@@ -45,6 +45,53 @@ function computeAgeFromDob(dob: string): number | null {
   return age;
 }
 
+function formatBookingDate(iso: string): string {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || "—";
+  const d = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+}
+
+function displayCabin(c: string): string {
+  const k = (c || "economy").toLowerCase();
+  if (k === "economy") return "Economy";
+  if (k === "business") return "Business";
+  if (k === "first") return "First";
+  return c ? c.charAt(0).toUpperCase() + c.slice(1) : "Economy";
+}
+
+/** Restore /flights search URL (uses origin/destination; booking links use from/to). */
+const DATE_OF_BIRTH_MIN = "1900-01-01";
+
+function todayIsoDate(): string {
+  const t = new Date();
+  const y = t.getFullYear();
+  const m = String(t.getMonth() + 1).padStart(2, "0");
+  const d = String(t.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function buildFlightsResultsHref(p: {
+  from: string;
+  to: string;
+  departure: string;
+  returnDate: string;
+  passengers: string;
+  cabin: string;
+  currency: string;
+}): string {
+  if (!p.from || !p.to || !p.departure) return "/flights";
+  const q = new URLSearchParams();
+  q.set("origin", p.from);
+  q.set("destination", p.to);
+  q.set("departure", p.departure);
+  if (p.returnDate) q.set("return", p.returnDate);
+  q.set("passengers", p.passengers || "1");
+  q.set("cabin", (p.cabin || "economy").toLowerCase());
+  q.set("currency", (p.currency || "INR").toUpperCase());
+  return `/flights?${q.toString()}`;
+}
+
 function BookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -61,6 +108,18 @@ function BookingContent() {
   const returnDate = searchParams.get("return") || "";
   const passengers = searchParams.get("passengers") || "1";
 
+  const flightsResultsHref = buildFlightsResultsHref({
+    from,
+    to,
+    departure,
+    returnDate,
+    passengers,
+    cabin,
+    currency: currencyFromUrl,
+  });
+
+  const dateOfBirthMax = todayIsoDate();
+
   const tripType = returnDate ? "round" : "one-way";
   const checkIn = departure;
   const checkOut = returnDate || departure;
@@ -70,6 +129,7 @@ function BookingContent() {
       ? price * passengerCountNum
       : usdToInr(price * passengerCountNum);
   const domestic = isDomestic(from, to);
+  const tripLabel = tripType === "round" ? "Round trip" : "One way";
 
   const passengerCount = Math.max(1, parseInt(passengers, 10) || 1);
 
@@ -81,6 +141,7 @@ function BookingContent() {
     { firstName: string; lastName: string; dob: string; gender: string }[]
   >(() => Array.from({ length: passengerCount }, () => ({ firstName: "", lastName: "", dob: "", gender: "" })));
   const [seatClass] = useState(domestic ? "economy" : cabin);
+  const cabinLabel = displayCabin(seatClass);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "giftcard" | null>(null);
   const [giftCardLast4, setGiftCardLast4] = useState("");
   const [selectedGiftCardCodes, setSelectedGiftCardCodes] = useState<string[]>([]);
@@ -295,13 +356,27 @@ function BookingContent() {
 
   if (!flightId || !from || !to) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="flex min-h-screen flex-col bg-muted/30">
         <Navbar />
-        <main className="flex-1 flex items-center justify-center px-4">
-          <Card className="max-w-md w-full">
-            <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground">Missing flight details. Please select a flight from search results.</p>
-              <Link href="/flights"><Button variant="accent" className="mt-4 text-primary">Search Flights</Button></Link>
+        <main className="flex flex-1 items-center justify-center px-4 py-16">
+          <Card className="w-full max-w-md border border-border shadow-sm">
+            <CardContent className="space-y-4 px-8 py-10 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center border-2 border-border bg-muted/50 text-muted-foreground">
+                <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="font-heading text-xl font-bold text-primary">No flight selected</h1>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  We need a flight from your search to continue checkout. Go back to results and choose a fare.
+                </p>
+              </div>
+              <Link href="/flights">
+                <Button variant="accent" className="text-primary">
+                  Search flights
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </main>
@@ -311,47 +386,96 @@ function BookingContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col bg-muted/30">
       <Navbar />
-      <section className="relative h-28 overflow-hidden">
-        <Image src="https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1920&h=300&fit=crop" alt="Booking" fill className="object-cover" />
-        <div className="hero-overlay absolute inset-0" />
-        <div className="relative flex h-full items-center justify-center">
-          <h1 className="font-heading text-2xl font-bold text-white md:text-3xl">Complete Your Booking</h1>
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto max-w-[1400px] px-4 py-3 sm:px-5 sm:py-4">
+          <nav className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground sm:text-xs">
+            <Link href={flightsResultsHref} className="transition-colors hover:text-foreground">
+              Flights
+            </Link>
+            <span className="text-border">/</span>
+            <span className="font-medium text-foreground">Checkout</span>
+          </nav>
+          <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+            <h1 className="font-heading text-xl font-bold text-primary sm:text-2xl">Complete your booking</h1>
+            <p className="max-w-xl text-xs text-muted-foreground sm:text-sm sm:text-right">
+              Review itinerary, add travellers, pay securely.
+            </p>
+          </div>
         </div>
-      </section>
+      </header>
       <BookingSteps currentStep={step} />
-      <main className="flex-1 py-10">
-        <div className="mx-auto max-w-2xl px-4">
-          {/* Flight summary (always visible) */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 rounded-lg border-2 border-accent/30 bg-accent/5 p-4"
-          >
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-primary text-white">
-                <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
-                </svg>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-heading font-semibold text-foreground">{decodeURIComponent(airline)}</p>
-                <p className="text-sm text-muted-foreground">
-                  {from} → {to} · {passengers} passenger{passengers !== "1" ? "s" : ""}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {departure}{returnDate ? ` · Return ${returnDate}` : ""}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-heading text-xl font-bold text-primary">₹{totalAmount.toLocaleString()}</p>
-                <p className="text-[10px] text-muted-foreground">total</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <AnimatePresence mode="wait">
+      <main className="flex-1 py-4 sm:py-5 lg:py-6">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-5">
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)] xl:grid-cols-[minmax(260px,300px)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:gap-8">
+            <aside className="order-first lg:sticky lg:top-20">
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="border border-border border-t-[3px] border-t-accent bg-card shadow-sm"
+              >
+                <div className="border-b border-accent/40 bg-primary px-3 py-2 sm:px-4 sm:py-2.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-accent sm:text-[11px]">Your itinerary</p>
+                  <p className="mt-0.5 line-clamp-2 font-heading text-xs font-semibold leading-tight text-primary-foreground sm:text-sm">
+                    {decodeURIComponent(airline)}
+                  </p>
+                </div>
+                <div className="space-y-3 p-3 sm:p-4">
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="font-heading text-lg font-bold tracking-tight text-primary sm:text-xl">{from}</span>
+                    <div className="flex min-w-0 flex-1 flex-col items-center px-1">
+                      <div className="h-px w-full max-w-[3rem] bg-accent/45 sm:max-w-[4rem]" />
+                      <svg className="-my-0.5 h-4 w-4 text-accent sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+                      </svg>
+                      <div className="h-px w-full max-w-[3rem] bg-accent/45 sm:max-w-[4rem]" />
+                    </div>
+                    <span className="font-heading text-lg font-bold tracking-tight text-primary sm:text-xl">{to}</span>
+                  </div>
+                  <dl className="divide-y divide-border/80 border-t border-border pt-3 text-xs sm:text-sm">
+                    <div className="flex items-start justify-between gap-3 py-2 first:pt-0">
+                      <dt className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">Trip</dt>
+                      <dd className="min-w-0 text-right font-medium leading-snug text-foreground">{tripLabel}</dd>
+                    </div>
+                    <div className="flex items-start justify-between gap-3 py-2">
+                      <dt className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">Cabin</dt>
+                      <dd className="min-w-0 text-right font-medium text-foreground">{cabinLabel}</dd>
+                    </div>
+                    {returnDate ? (
+                      <>
+                        <div className="flex items-start justify-between gap-3 py-2">
+                          <dt className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">Depart</dt>
+                          <dd className="min-w-0 text-right font-medium leading-snug text-foreground">{formatBookingDate(departure)}</dd>
+                        </div>
+                        <div className="flex items-start justify-between gap-3 py-2">
+                          <dt className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">Return</dt>
+                          <dd className="min-w-0 text-right font-medium leading-snug text-foreground">{formatBookingDate(returnDate)}</dd>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-start justify-between gap-3 py-2">
+                        <dt className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">Date</dt>
+                        <dd className="min-w-0 text-right font-medium leading-snug text-foreground">{formatBookingDate(departure)}</dd>
+                      </div>
+                    )}
+                    <div className="flex items-start justify-between gap-3 py-2">
+                      <dt className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">Travellers</dt>
+                      <dd className="min-w-0 text-right font-medium text-foreground">
+                        {passengers} {passengers === "1" ? "adult" : "adults"}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div className="border-t border-border pt-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-accent sm:text-[11px]">Total due</p>
+                    <p className="mt-0.5 font-heading text-xl font-bold text-primary sm:text-2xl">{formatInr(totalAmount)}</p>
+                    <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground sm:text-xs">Taxes and fees where applicable</p>
+                  </div>
+                </div>
+              </motion.div>
+            </aside>
+            <div className="min-w-0 max-w-3xl lg:max-w-none">
+              <AnimatePresence mode="wait">
             {/* Step 1: Passenger details */}
             {step === 1 && (
               <motion.div
@@ -361,16 +485,17 @@ function BookingContent() {
                 exit={{ opacity: 0, x: -24 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="border-2 overflow-hidden">
-                  <CardHeader className="bg-primary text-white">
-                    <h2 className="font-heading text-xl font-semibold">Passenger Details</h2>
-                    <p className="text-sm text-white/80">We’ll use this for your booking and e-ticket</p>
+                <Card className="overflow-visible border border-border shadow-sm">
+                  <CardHeader className="border-b border-border bg-primary px-4 py-3 text-primary-foreground sm:px-5 sm:py-3.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/75 sm:text-[11px]">Step 1</p>
+                    <h2 className="mt-0.5 font-heading text-lg font-semibold sm:text-xl">Traveller details</h2>
+                    <p className="mt-0.5 text-xs text-primary-foreground/85 sm:text-sm">For booking confirmation and e-ticket.</p>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-4">
+                  <CardContent className="space-y-4 p-4 sm:p-5">
                     {passengerCount === 1 ? (
                       <>
-                        <p className="text-sm text-muted-foreground font-medium">Passenger details</p>
-                        <div className="rounded-lg border border-border p-4 space-y-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Passenger</p>
+                        <div className="space-y-3 border border-border bg-card p-4">
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <Label>First name</Label>
@@ -406,18 +531,27 @@ function BookingContent() {
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <Label>Date of birth</Label>
-                              <Input
-                                type="date"
-                                className="mt-1"
-                                value={passengerDetails[0]?.dob || ""}
-                                onChange={(e) =>
-                                  setPassengerDetails((prev) => {
-                                    const next = [...prev];
-                                    next[0] = { ...(next[0] || { firstName: "", lastName: "", dob: "", gender: "" }), dob: e.target.value };
-                                    return next;
-                                  })
-                                }
-                              />
+                              <div className="mt-1">
+                                <PremiumDateInput
+                                  compact
+                                  value={passengerDetails[0]?.dob || ""}
+                                  onChange={(val) =>
+                                    setPassengerDetails((prev) => {
+                                      const next = [...prev];
+                                      next[0] = {
+                                        ...(next[0] || { firstName: "", lastName: "", dob: "", gender: "" }),
+                                        dob: val,
+                                      };
+                                      return next;
+                                    })
+                                  }
+                                  min={DATE_OF_BIRTH_MIN}
+                                  max={dateOfBirthMax}
+                                  placeholder="Select date of birth"
+                                  headerLabel="Date of birth"
+                                  showTodayShortcut={false}
+                                />
+                              </div>
                               {passengerDetails[0]?.dob ? (
                                 <p className="mt-1 text-xs text-muted-foreground">
                                   Age: {computeAgeFromDob(passengerDetails[0].dob) ?? "—"}
@@ -427,7 +561,7 @@ function BookingContent() {
                             <div>
                               <Label>Gender</Label>
                               <select
-                                className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                                className="mt-1 flex h-10 w-full rounded-none border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 value={passengerDetails[0]?.gender || ""}
                                 onChange={(e) =>
                                   setPassengerDetails((prev) => {
@@ -468,7 +602,7 @@ function BookingContent() {
                       </>
                     ) : (
                       <>
-                        <p className="text-sm text-muted-foreground font-medium">Contact details (one for the booking)</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Contact (one per booking)</p>
                         <div>
                           <Label>Email</Label>
                           <Input
@@ -489,10 +623,10 @@ function BookingContent() {
                             onChange={(e) => setPhone(e.target.value)}
                           />
                         </div>
-                        <p className="text-sm text-muted-foreground font-medium pt-2">Passenger details</p>
+                        <p className="pt-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Passengers</p>
                         {passengerDetails.slice(0, passengerCount).map((p, i) => (
-                          <div key={i} className="rounded-lg border border-border p-4 space-y-3">
-                            <p className="text-xs font-semibold text-muted-foreground">Passenger {i + 1}</p>
+                          <div key={i} className="space-y-3 border border-border bg-card p-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-primary">Passenger {i + 1}</p>
                             <div className="grid grid-cols-2 gap-3">
                               <div>
                                 <Label>First name</Label>
@@ -528,18 +662,24 @@ function BookingContent() {
                             <div className="grid grid-cols-2 gap-3">
                               <div>
                                 <Label>Date of birth</Label>
-                                <Input
-                                  type="date"
-                                  className="mt-1"
-                                  value={p.dob}
-                                  onChange={(e) =>
-                                    setPassengerDetails((prev) => {
-                                      const next = [...prev];
-                                      if (next[i]) next[i] = { ...next[i], dob: e.target.value };
-                                      return next;
-                                    })
-                                  }
-                                />
+                                <div className="mt-1">
+                                  <PremiumDateInput
+                                    compact
+                                    value={p.dob}
+                                    onChange={(val) =>
+                                      setPassengerDetails((prev) => {
+                                        const next = [...prev];
+                                        if (next[i]) next[i] = { ...next[i], dob: val };
+                                        return next;
+                                      })
+                                    }
+                                    min={DATE_OF_BIRTH_MIN}
+                                    max={dateOfBirthMax}
+                                    placeholder="Select date of birth"
+                                    headerLabel="Date of birth"
+                                    showTodayShortcut={false}
+                                  />
+                                </div>
                                 {p.dob ? (
                                   <p className="mt-1 text-xs text-muted-foreground">
                                     Age: {computeAgeFromDob(p.dob) ?? "—"}
@@ -549,7 +689,7 @@ function BookingContent() {
                               <div>
                                 <Label>Gender</Label>
                                 <select
-                                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                                  className="mt-1 flex h-10 w-full rounded-none border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                   value={p.gender}
                                   onChange={(e) =>
                                     setPassengerDetails((prev) => {
@@ -570,10 +710,12 @@ function BookingContent() {
                         ))}
                       </>
                     )}
-                    <div className="flex gap-3 pt-2">
-                      <Button variant="outline" onClick={() => router.push("/flights")}>Back to results</Button>
+                    <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+                      <Button variant="outline" onClick={() => router.push(flightsResultsHref)}>
+                        Back to results
+                      </Button>
                       <Button variant="accent" className="text-primary" onClick={() => setStep(2)} disabled={!canProceedPassenger}>
-                        Continue to Payment
+                        Continue to payment
                       </Button>
                     </div>
                   </CardContent>
@@ -590,14 +732,17 @@ function BookingContent() {
                 exit={{ opacity: 0, x: -24 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="border-2 overflow-hidden">
-                  <CardHeader className="bg-primary text-white">
-                    <h2 className="font-heading text-xl font-semibold">Payment</h2>
-                    <p className="text-sm text-white/80">Total: {formatInr(totalAmount)}</p>
+                <Card className="overflow-visible border border-border shadow-sm">
+                  <CardHeader className="border-b border-border bg-primary px-4 py-3 text-primary-foreground sm:px-5 sm:py-3.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/75 sm:text-[11px]">Step 2</p>
+                    <h2 className="mt-0.5 font-heading text-lg font-semibold sm:text-xl">Payment</h2>
+                    <p className="mt-0.5 text-xs text-primary-foreground/85 sm:text-sm">
+                      Total {formatInr(totalAmount)} — choose a method below.
+                    </p>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-5">
+                  <CardContent className="space-y-4 p-4 sm:p-5">
                     {paymentError && (
-                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">{paymentError}</div>
+                      <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{paymentError}</div>
                     )}
 
                     {user ? (
@@ -609,7 +754,7 @@ function BookingContent() {
                             whileTap={{ scale: 0.98 }}
                             onClick={handlePayOnline}
                             disabled={submitLoading}
-                            className="flex flex-col items-center gap-2 border-2 border-border p-6 hover:border-accent/50 hover:bg-accent/5 transition-all rounded-sm"
+                            className="flex flex-col items-center gap-1.5 border border-border bg-card p-4 transition-all hover:border-accent/60 hover:bg-accent/5 sm:p-5"
                           >
                             <div className="flex h-12 w-12 items-center justify-center bg-primary/10 text-primary">
                               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -625,8 +770,8 @@ function BookingContent() {
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setPaymentMethod("giftcard")}
                             className={cn(
-                              "flex flex-col items-center gap-2 border-2 p-6 transition-all rounded-sm",
-                              paymentMethod === "giftcard" ? "border-accent bg-accent/10" : "border-border hover:border-accent/50 hover:bg-accent/5"
+                              "flex flex-col items-center gap-1.5 border p-4 transition-all bg-card sm:p-5",
+                              paymentMethod === "giftcard" ? "border-accent bg-accent/10" : "border-border hover:border-accent/60 hover:bg-accent/5"
                             )}
                           >
                             <div className="flex h-12 w-12 items-center justify-center bg-accent/20 text-accent">
@@ -643,7 +788,7 @@ function BookingContent() {
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
-                            className="border border-border rounded-lg p-4 space-y-3"
+                            className="space-y-3 border border-border bg-muted/20 p-4"
                           >
                             <div className="space-y-2">
                               <Label>Select a gift card</Label>
@@ -660,7 +805,7 @@ function BookingContent() {
                                       <label
                                         key={c.giftcard_id ?? c.code}
                                         className={cn(
-                                          "flex cursor-pointer items-center justify-between gap-4 rounded-md border p-3 transition-colors",
+                                          "flex cursor-pointer items-center justify-between gap-4 border p-3 transition-colors",
                                           checked ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
                                         )}
                                       >
@@ -755,7 +900,9 @@ function BookingContent() {
                       </>
                     ) : (
                       <div>
-                        <p className="text-sm text-muted-foreground mb-3">Guest checkout: pay securely with Razorpay.</p>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          Guest checkout — pay securely with Razorpay. Your details stay encrypted.
+                        </p>
                         <Button
                           variant="accent"
                           size="lg"
@@ -768,8 +915,10 @@ function BookingContent() {
                       </div>
                     )}
 
-                    <div className="flex gap-3 pt-2">
-                      <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
+                    <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+                      <Button variant="outline" onClick={() => setStep(1)}>
+                        Back to details
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -784,24 +933,25 @@ function BookingContent() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4 }}
               >
-                <Card className="border-2 border-accent overflow-hidden">
-                  <CardHeader className="bg-accent/10 text-center">
+                <Card className="overflow-visible border border-border border-t-[3px] border-t-accent shadow-sm">
+                  <CardHeader className="border-b border-border bg-accent/10 px-4 py-5 text-center sm:px-6 sm:py-6">
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
-                      className="mx-auto mb-2 flex h-16 w-16 items-center justify-center bg-accent rounded-full"
+                      className="mx-auto mb-2 flex h-12 w-12 items-center justify-center border-2 border-accent bg-accent text-primary sm:mb-3 sm:h-14 sm:w-14"
                     >
-                      <svg className="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-6 w-6 sm:h-7 sm:w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </motion.div>
-                    <h2 className="font-heading text-2xl font-semibold text-primary">Booking Confirmed!</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      You will receive a confirmation email shortly with your tracking link. Save your booking reference below.
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground sm:text-[11px]">Step 3</p>
+                    <h2 className="mt-1 font-heading text-xl font-bold text-primary sm:text-2xl">Booking confirmed</h2>
+                    <p className="mx-auto mt-1 max-w-md text-xs text-muted-foreground leading-snug sm:text-sm sm:leading-relaxed">
+                      Confirmation email sent. Save your reference below; track or download your e-ticket anytime.
                     </p>
                   </CardHeader>
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="px-4 py-5 text-center sm:px-8 sm:py-6">
                     <p className="font-mono text-xl font-bold text-primary tracking-wide">{bookingId}</p>
                     <p className="text-xs text-muted-foreground mt-1">Your Booking Reference</p>
                     {trackingLink && (
@@ -824,7 +974,9 @@ function BookingContent() {
                 </Card>
               </motion.div>
             )}
-          </AnimatePresence>
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </main>
       <Footer />
@@ -843,7 +995,19 @@ function BookingContent() {
 
 export default function BookingPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="h-10 w-10 border-4 border-muted border-t-accent animate-spin rounded-full" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-muted/30 px-4">
+          <div className="relative">
+            <div className="h-12 w-12 border-4 border-muted border-t-accent animate-spin" />
+            <svg className="absolute inset-0 m-auto h-4 w-4 text-accent" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+              <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+            </svg>
+          </div>
+          <p className="font-heading text-sm font-semibold text-primary">Loading checkout…</p>
+        </div>
+      }
+    >
       <BookingContent />
     </Suspense>
   );
