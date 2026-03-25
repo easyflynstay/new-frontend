@@ -1,10 +1,14 @@
 import api from "@/lib/api";
 
+export type CouponDiscountType = "percent" | "inr";
+
 export interface ValidateCouponResponse {
   valid: boolean;
   message?: string;
-  /** Coupon's configured percent off (e.g. 15 = 15%) */
+  discount_type?: CouponDiscountType;
   discount_percent?: number;
+  /** Face value in INR for fixed-amount coupons */
+  discount_amount_inr?: number;
   discount_inr?: number;
   payable_inr?: number;
   code?: string;
@@ -21,16 +25,21 @@ export async function validateCoupon(code: string, orderAmountInr: number): Prom
 export interface AdminGenerateCouponsResponse {
   codes: string[];
   count: number;
-  discount_percent: number;
+  discount_type: CouponDiscountType;
+  discount_percent?: number;
+  discount_amount_inr?: number;
 }
 
+export type AdminGenerateCouponsPayload =
+  | { count: number; discountType: "percent"; discountPercent: number }
+  | { count: number; discountType: "inr"; discountAmountInr: number };
+
 export async function adminGenerateCoupons(
-  count: number,
-  discountPercent: number
+  payload: AdminGenerateCouponsPayload
 ): Promise<AdminGenerateCouponsResponse> {
   const { data } = await api.post<AdminGenerateCouponsResponse>(
     "/coupons/admin/generate",
-    { count, discountPercent },
+    payload,
     { withCredentials: true }
   );
   return data;

@@ -35,7 +35,9 @@ export function AdminPanel() {
   const [notifyMessage, setNotifyMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [couponCount, setCouponCount] = useState(5);
+  const [couponDiscountMode, setCouponDiscountMode] = useState<"percent" | "inr">("percent");
   const [couponDiscountPercent, setCouponDiscountPercent] = useState("10");
+  const [couponDiscountInr, setCouponDiscountInr] = useState("500");
   const [couponGenLoading, setCouponGenLoading] = useState(false);
   const [couponGenMessage, setCouponGenMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [generatedCouponCodes, setGeneratedCouponCodes] = useState<string[]>([]);
@@ -132,19 +134,39 @@ export function AdminPanel() {
   const handleCouponGenerateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const count = Math.min(250, Math.max(1, parseInt(String(couponCount), 10) || 0));
-    const discount = parseFloat(couponDiscountPercent.replace(/,/g, ""));
-    if (!count || discount <= 0 || discount > 100 || Number.isNaN(discount)) {
-      setCouponGenMessage({ type: "error", text: "Enter a valid count (1–250) and discount percent between 1 and 100." });
+    if (!count) {
+      setCouponGenMessage({ type: "error", text: "Enter a valid count (1–250)." });
       return;
     }
     setCouponGenMessage(null);
     setCouponGenLoading(true);
     try {
-      const res = await adminGenerateCoupons(count, discount);
+      let res;
+      if (couponDiscountMode === "percent") {
+        const pct = parseFloat(couponDiscountPercent.replace(/,/g, ""));
+        if (Number.isNaN(pct) || pct <= 0 || pct > 100) {
+          setCouponGenMessage({ type: "error", text: "Enter a percent between 0 and 100 (e.g. 19.99)." });
+          setCouponGenLoading(false);
+          return;
+        }
+        res = await adminGenerateCoupons({ count, discountType: "percent", discountPercent: pct });
+      } else {
+        const inr = parseFloat(couponDiscountInr.replace(/,/g, ""));
+        if (Number.isNaN(inr) || inr <= 0) {
+          setCouponGenMessage({ type: "error", text: "Enter a positive INR amount for the fixed discount." });
+          setCouponGenLoading(false);
+          return;
+        }
+        res = await adminGenerateCoupons({ count, discountType: "inr", discountAmountInr: inr });
+      }
       setGeneratedCouponCodes(res.codes);
+      const summary =
+        res.discount_type === "percent"
+          ? `${res.discount_percent}% off the fare each`
+          : `₹${res.discount_amount_inr} off the fare each (capped by order total)`;
       setCouponGenMessage({
         type: "success",
-        text: `Created ${res.count} code(s), ${res.discount_percent}% off the fare each. Copy the list below and share with customers.`,
+        text: `Created ${res.count} code(s), ${summary}. Copy the list below and share with customers.`,
       });
     } catch (err: unknown) {
       const res = err && typeof err === "object" && "response" in err
@@ -260,11 +282,36 @@ export function AdminPanel() {
             <CardHeader className="bg-primary text-white">
               <h2 className="font-heading text-lg font-semibold">Discount coupons</h2>
               <p className="text-sm text-white/80">
-                Generate single-use codes. Each code takes a percentage off the fare once (computed at checkout). Share codes with customers to use at checkout.
+                Generate single-use codes. Choose a percent off the fare or a fixed INR amount off (capped at checkout total). Share codes with customers to use at checkout.
               </p>
             </CardHeader>
             <CardContent className="p-6">
               <form onSubmit={handleCouponGenerateSubmit} className="space-y-4">
+                <div>
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Discount type</Label>
+                  <div className="mt-2 flex flex-wrap gap-4">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="couponMode"
+                        checked={couponDiscountMode === "percent"}
+                        onChange={() => setCouponDiscountMode("percent")}
+                        className="accent-[hsl(var(--accent))]"
+                      />
+                      Percent off fare
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="couponMode"
+                        checked={couponDiscountMode === "inr"}
+                        onChange={() => setCouponDiscountMode("inr")}
+                        className="accent-[hsl(var(--accent))]"
+                      />
+                      Fixed INR off
+                    </label>
+                  </div>
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="couponCount">How many codes</Label>
@@ -279,21 +326,35 @@ export function AdminPanel() {
                       required
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="couponDiscount">Discount per code (% off fare)</Label>
-                    <Input
-                      id="couponDiscount"
-                      type="number"
-                      min={0.01}
-                      max={100}
-                      step={0.5}
-                      value={couponDiscountPercent}
-                      onChange={(e) => setCouponDiscountPercent(e.target.value)}
-                      className="mt-1"
-                      placeholder="e.g. 10"
-                      required
-                    />
-                  </div>
+                  {couponDiscountMode === "percent" ? (
+                    <div>
+                      <Label htmlFor="couponDiscount">Percent off (e.g. 19.99 — up to 100)</Label>
+                      <Input
+                        id="couponDiscount"
+                        type="number"
+                        step="any"
+                        value={couponDiscountPercent}
+                        onChange={(e) => setCouponDiscountPercent(e.target.value)}
+                        className="mt-1"
+                        placeholder="e.g. 19.99"
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <Label htmlFor="couponDiscountInr">INR off per use</Label>
+                      <Input
+                        id="couponDiscountInr"
+                        type="number"
+                        step="any"
+                        value={couponDiscountInr}
+                        onChange={(e) => setCouponDiscountInr(e.target.value)}
+                        className="mt-1"
+                        placeholder="e.g. 500"
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
                 {couponGenMessage && (
                   <div className={`rounded-lg px-4 py-3 text-sm ${couponGenMessage.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>

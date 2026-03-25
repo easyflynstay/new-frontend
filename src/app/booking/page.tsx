@@ -145,7 +145,10 @@ function BookingContent() {
     code: string;
     discountInr: number;
     payableInr: number;
+    discountType: "percent" | "inr";
     discountPercent?: number;
+    /** Face value for fixed-INR coupons */
+    discountAmountInr?: number;
   } | null>(null);
 
   const payableAmount = appliedCoupon ? appliedCoupon.payableInr : totalAmount;
@@ -272,7 +275,9 @@ function BookingContent() {
         code: (res.code || raw).toUpperCase(),
         discountInr: res.discount_inr ?? 0,
         payableInr: Math.max(0, res.payable_inr ?? totalAmount),
+        discountType: res.discount_type === "inr" ? "inr" : "percent",
         discountPercent: res.discount_percent,
+        discountAmountInr: res.discount_amount_inr,
       });
     } catch (err: unknown) {
       setAppliedCoupon(null);
@@ -545,7 +550,12 @@ function BookingContent() {
                         <div className="flex justify-between gap-2 text-xs text-emerald-700 font-medium">
                           <span>
                             Coupon ({appliedCoupon.code}
-                            {appliedCoupon.discountPercent != null ? ` · ${appliedCoupon.discountPercent}%` : ""})
+                            {appliedCoupon.discountType === "percent" && appliedCoupon.discountPercent != null
+                              ? ` · ${appliedCoupon.discountPercent}%`
+                              : appliedCoupon.discountType === "inr" && appliedCoupon.discountAmountInr != null
+                                ? ` · ₹${appliedCoupon.discountAmountInr} off`
+                                : ""}
+                            )
                           </span>
                           <span>−{formatInr(appliedCoupon.discountInr)}</span>
                         </div>
@@ -864,12 +874,16 @@ function BookingContent() {
                       {appliedCoupon ? (
                         <p className="text-sm text-emerald-800">
                           Applied
-                          {appliedCoupon.discountPercent != null ? ` (${appliedCoupon.discountPercent}% off)` : ""}: −
-                          {formatInr(appliedCoupon.discountInr)} · You pay {formatInr(appliedCoupon.payableInr)}
+                          {appliedCoupon.discountType === "percent" && appliedCoupon.discountPercent != null
+                            ? ` (${appliedCoupon.discountPercent}% off)`
+                            : appliedCoupon.discountType === "inr"
+                              ? " (fixed amount off)"
+                              : ""}
+                          : −{formatInr(appliedCoupon.discountInr)} · You pay {formatInr(appliedCoupon.payableInr)}
                         </p>
                       ) : (
                         <p className="text-xs text-muted-foreground">
-                          Percent-off discount applies to this fare only; one use per code.
+                          Percent-off or fixed-INR codes apply to this fare only; one use per code.
                         </p>
                       )}
                     </div>
