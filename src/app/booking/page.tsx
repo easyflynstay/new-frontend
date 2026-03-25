@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMyGiftCards, type GiftCard } from "@/services/giftcards";
 import { createBookingOrder, createBooking, type CreateBookingPayload } from "@/services/booking";
+import { validateCoupon } from "@/services/coupons";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
 import { usdToInr, formatInr } from "@/lib/currency";
 import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
@@ -62,6 +63,14 @@ function displayCabin(c: string): string {
 
 /** Restore /flights search URL (uses origin/destination; booking links use from/to). */
 const DATE_OF_BIRTH_MIN = "1900-01-01";
+
+/** Razorpay requires at least ₹1 when charging a positive amount. */
+function razorpayChargeableInr(payable: number): number {
+  if (payable <= 0) return 0;
+  const r = Math.round(payable * 100) / 100;
+  if (r > 0 && r < 1) return 1;
+  return r;
+}
 
 function todayIsoDate(): string {
   const t = new Date();
@@ -128,6 +137,18 @@ function BookingContent() {
     currencyFromUrl === "INR"
       ? price * passengerCountNum
       : usdToInr(price * passengerCountNum);
+
+  const [couponInput, setCouponInput] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponFieldError, setCouponFieldError] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountInr: number;
+    payableInr: number;
+    discountPercent?: number;
+  } | null>(null);
+
+  const payableAmount = appliedCoupon ? appliedCoupon.payableInr : totalAmount;
   const domestic = isDomestic(from, to);
   const tripLabel = tripType === "round" ? "Round trip" : "One way";
 
@@ -205,7 +226,7 @@ function BookingContent() {
         : [];
 
   const allocations = (() => {
-    let remaining = totalAmount;
+    let remaining = payableAmount;
     const out: Array<{ code: string; amountUsed: number; balance: number; last4: string }> = [];
     for (const c of selectedCards) {
       const bal = Number(c.balance);
@@ -216,7 +237,7 @@ function BookingContent() {
         remaining -= use;
       }
     }
-    return { items: out, remaining, totalUsed: totalAmount - remaining };
+    return { items: out, remaining, totalUsed: payableAmount - remaining };
   })();
 
   const giftCardSufficient = allocations.remaining <= 0 && allocations.items.length > 0;
@@ -232,12 +253,56 @@ function BookingContent() {
       .slice(0, passengerCount)
       .every((p) => p.firstName.trim().length > 0 && p.lastName.trim().length > 0 && p.dob.trim().length > 0 && p.gender.trim().length > 0);
 
+  const handleApplyCoupon = async () => {
+    const raw = couponInput.trim();
+    if (!raw) {
+      setCouponFieldError("Enter a coupon code.");
+      return;
+    }
+    setCouponFieldError("");
+    setCouponLoading(true);
+    try {
+      const res = await validateCoupon(raw, totalAmount);
+      if (!res.valid) {
+        setAppliedCoupon(null);
+        setCouponFieldError(res.message || "This code cannot be applied.");
+        return;
+      }
+      setAppliedCoupon({
+        code: (res.code || raw).toUpperCase(),
+        discountInr: res.discount_inr ?? 0,
+        payableInr: Math.max(0, res.payable_inr ?? totalAmount),
+        discountPercent: res.discount_percent,
+      });
+    } catch (err: unknown) {
+      setAppliedCoupon(null);
+      const detail =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : (err as Error)?.message;
+      setCouponFieldError(detail || "Could not validate coupon.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponFieldError("");
+  };
+
   const handlePayWithRazorpay = async () => {
     setSubmitLoading(true);
     setPaymentError("");
     try {
+      const charge = razorpayChargeableInr(payableAmount);
+      if (charge <= 0) {
+        await submitBooking();
+        setSubmitLoading(false);
+        return;
+      }
       await loadRazorpayScript();
-      const order = await createBookingOrder(totalAmount);
+      const order = await createBookingOrder(charge);
       openRazorpayCheckout({
         orderId: order.order_id,
         amountPaise: order.amount,
@@ -302,6 +367,10 @@ function BookingContent() {
       payload.giftcardAmountUsed = giftcardAmountUsed;
       if (paymentPin) payload.paymentPin = paymentPin;
     }
+    if (appliedCoupon) {
+      payload.couponCode = appliedCoupon.code;
+      payload.orderAmountInr = totalAmount;
+    }
     try {
       const res = await createBooking(payload);
       setBookingId(res.booking_id);
@@ -318,7 +387,7 @@ function BookingContent() {
 
   const handlePayWithGiftCard = () => {
     if (!giftCardSufficient) {
-      setPaymentError("Select gift cards with combined balance ≥ ₹" + totalAmount.toLocaleString() + ".");
+      setPaymentError("Select gift cards with combined balance ≥ ₹" + Math.ceil(payableAmount).toLocaleString("en-IN") + ".");
       return;
     }
     setPaymentError("");
@@ -466,9 +535,24 @@ function BookingContent() {
                       </dd>
                     </div>
                   </dl>
-                  <div className="border-t border-border pt-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-accent sm:text-[11px]">Total due</p>
-                    <p className="mt-0.5 font-heading text-xl font-bold text-primary sm:text-2xl">{formatInr(totalAmount)}</p>
+                  <div className="border-t border-border pt-3 space-y-1">
+                    {appliedCoupon ? (
+                      <>
+                        <div className="flex justify-between gap-2 text-xs text-muted-foreground">
+                          <span>Subtotal</span>
+                          <span>{formatInr(totalAmount)}</span>
+                        </div>
+                        <div className="flex justify-between gap-2 text-xs text-emerald-700 font-medium">
+                          <span>
+                            Coupon ({appliedCoupon.code}
+                            {appliedCoupon.discountPercent != null ? ` · ${appliedCoupon.discountPercent}%` : ""})
+                          </span>
+                          <span>−{formatInr(appliedCoupon.discountInr)}</span>
+                        </div>
+                      </>
+                    ) : null}
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-accent sm:text-[11px] pt-1">Total due</p>
+                    <p className="mt-0.5 font-heading text-xl font-bold text-primary sm:text-2xl">{formatInr(payableAmount)}</p>
                     <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground sm:text-xs">Taxes and fees where applicable</p>
                   </div>
                 </div>
@@ -737,13 +821,66 @@ function BookingContent() {
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/75 sm:text-[11px]">Step 2</p>
                     <h2 className="mt-0.5 font-heading text-lg font-semibold sm:text-xl">Payment</h2>
                     <p className="mt-0.5 text-xs text-primary-foreground/85 sm:text-sm">
-                      Total {formatInr(totalAmount)} — choose a method below.
+                      {formatInr(payableAmount)} due
+                      {appliedCoupon ? ` after coupon` : ""} — choose a method below.
                     </p>
                   </CardHeader>
                   <CardContent className="space-y-4 p-4 sm:p-5">
                     {paymentError && (
                       <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{paymentError}</div>
                     )}
+
+                    <div className="space-y-2 border border-border bg-muted/15 p-4">
+                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Coupon code</Label>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Input
+                          className="font-mono sm:max-w-xs"
+                          placeholder="e.g. CP-XXXXXXXXXX"
+                          value={couponInput}
+                          onChange={(e) => {
+                            setCouponInput(e.target.value.toUpperCase());
+                            setCouponFieldError("");
+                          }}
+                          disabled={!!appliedCoupon || couponLoading || submitLoading}
+                        />
+                        {appliedCoupon ? (
+                          <Button type="button" variant="outline" onClick={handleRemoveCoupon} disabled={submitLoading}>
+                            Remove
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => void handleApplyCoupon()}
+                            disabled={couponLoading || submitLoading}
+                          >
+                            {couponLoading ? "Checking…" : "Apply"}
+                          </Button>
+                        )}
+                      </div>
+                      {couponFieldError ? (
+                        <p className="text-sm text-red-700">{couponFieldError}</p>
+                      ) : null}
+                      {appliedCoupon ? (
+                        <p className="text-sm text-emerald-800">
+                          Applied
+                          {appliedCoupon.discountPercent != null ? ` (${appliedCoupon.discountPercent}% off)` : ""}: −
+                          {formatInr(appliedCoupon.discountInr)} · You pay {formatInr(appliedCoupon.payableInr)}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          Percent-off discount applies to this fare only; one use per code.
+                        </p>
+                      )}
+                    </div>
+
+                    {payableAmount <= 0 ? (
+                      <div className="border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                        {appliedCoupon
+                          ? "Coupon covers the full amount. Confirm your booking below — no payment step required."
+                          : "No payment is due. Confirm your booking below."}
+                      </div>
+                    ) : null}
 
                     {user ? (
                       <>
@@ -753,7 +890,7 @@ function BookingContent() {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={handlePayOnline}
-                            disabled={submitLoading}
+                            disabled={submitLoading || payableAmount <= 0}
                             className="flex flex-col items-center gap-1.5 border border-border bg-card p-4 transition-all hover:border-accent/60 hover:bg-accent/5 sm:p-5"
                           >
                             <div className="flex h-12 w-12 items-center justify-center bg-primary/10 text-primary">
@@ -769,9 +906,11 @@ function BookingContent() {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setPaymentMethod("giftcard")}
+                            disabled={payableAmount <= 0}
                             className={cn(
                               "flex flex-col items-center gap-1.5 border p-4 transition-all bg-card sm:p-5",
-                              paymentMethod === "giftcard" ? "border-accent bg-accent/10" : "border-border hover:border-accent/60 hover:bg-accent/5"
+                              paymentMethod === "giftcard" ? "border-accent bg-accent/10" : "border-border hover:border-accent/60 hover:bg-accent/5",
+                              payableAmount <= 0 && "pointer-events-none opacity-50"
                             )}
                           >
                             <div className="flex h-12 w-12 items-center justify-center bg-accent/20 text-accent">
@@ -784,7 +923,19 @@ function BookingContent() {
                           </motion.button>
                         </div>
 
-                        {paymentMethod === "giftcard" && (
+                        {payableAmount <= 0 ? (
+                          <Button
+                            variant="accent"
+                            className="text-primary w-full"
+                            size="lg"
+                            disabled={submitLoading}
+                            onClick={() => void handlePayWithRazorpay()}
+                          >
+                            {submitLoading ? "Confirming…" : "Complete booking"}
+                          </Button>
+                        ) : null}
+
+                        {paymentMethod === "giftcard" && payableAmount > 0 && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
@@ -899,19 +1050,35 @@ function BookingContent() {
                         )}
                       </>
                     ) : (
-                      <div>
+                      <div className="space-y-3">
                         <p className="text-sm leading-relaxed text-muted-foreground">
-                          Guest checkout — pay securely with Razorpay. Your details stay encrypted.
+                          {payableAmount <= 0
+                            ? appliedCoupon
+                              ? "Your coupon covers this booking. Confirm to finish."
+                              : "No payment is due for this fare. Confirm to finish."
+                            : "Guest checkout — pay securely with Razorpay. Your details stay encrypted."}
                         </p>
-                        <Button
-                          variant="accent"
-                          size="lg"
-                          className="text-primary w-full"
-                          disabled={submitLoading}
-                          onClick={handlePayOnline}
-                        >
-                          {submitLoading ? "Opening payment..." : "Pay Online (Razorpay)"}
-                        </Button>
+                        {payableAmount <= 0 ? (
+                          <Button
+                            variant="accent"
+                            size="lg"
+                            className="text-primary w-full"
+                            disabled={submitLoading}
+                            onClick={() => void handlePayWithRazorpay()}
+                          >
+                            {submitLoading ? "Confirming…" : "Complete booking"}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="accent"
+                            size="lg"
+                            className="text-primary w-full"
+                            disabled={submitLoading}
+                            onClick={handlePayOnline}
+                          >
+                            {submitLoading ? "Opening payment..." : "Pay Online (Razorpay)"}
+                          </Button>
+                        )}
                       </div>
                     )}
 

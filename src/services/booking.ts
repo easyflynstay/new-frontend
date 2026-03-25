@@ -27,6 +27,10 @@ export interface CreateBookingPayload {
   customerId?: string;
   /** Required when paying with gift card: 6-digit payment PIN */
   paymentPin?: string;
+  /** Single-use coupon (must send orderAmountInr = pre-discount total in INR) */
+  couponCode?: string;
+  /** Pre-discount booking total in INR; required when couponCode is set */
+  orderAmountInr?: number;
 }
 
 export interface BookingResponse {

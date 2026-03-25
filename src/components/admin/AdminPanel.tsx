@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { adminSendTrackingEmail, adminUpdatePnr, adminUploadTicket } from "@/services/booking";
 import { adminLogin, adminLogout, adminMe } from "@/services/admin";
+import { adminGenerateCoupons } from "@/services/coupons";
 
 export function AdminPanel() {
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -32,6 +33,12 @@ export function AdminPanel() {
   const [notifyBookingId, setNotifyBookingId] = useState("");
   const [notifyLoading, setNotifyLoading] = useState(false);
   const [notifyMessage, setNotifyMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const [couponCount, setCouponCount] = useState(5);
+  const [couponDiscountPercent, setCouponDiscountPercent] = useState("10");
+  const [couponGenLoading, setCouponGenLoading] = useState(false);
+  const [couponGenMessage, setCouponGenMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [generatedCouponCodes, setGeneratedCouponCodes] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +126,35 @@ export function AdminPanel() {
       setTicketMessage({ type: "error", text: String(detail) });
     } finally {
       setTicketLoading(false);
+    }
+  };
+
+  const handleCouponGenerateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const count = Math.min(250, Math.max(1, parseInt(String(couponCount), 10) || 0));
+    const discount = parseFloat(couponDiscountPercent.replace(/,/g, ""));
+    if (!count || discount <= 0 || discount > 100 || Number.isNaN(discount)) {
+      setCouponGenMessage({ type: "error", text: "Enter a valid count (1–250) and discount percent between 1 and 100." });
+      return;
+    }
+    setCouponGenMessage(null);
+    setCouponGenLoading(true);
+    try {
+      const res = await adminGenerateCoupons(count, discount);
+      setGeneratedCouponCodes(res.codes);
+      setCouponGenMessage({
+        type: "success",
+        text: `Created ${res.count} code(s), ${res.discount_percent}% off the fare each. Copy the list below and share with customers.`,
+      });
+    } catch (err: unknown) {
+      const res = err && typeof err === "object" && "response" in err
+        ? (err as { response?: { data?: { detail?: string }; status?: number } }).response
+        : undefined;
+      const detail = res?.data?.detail ?? (err as Error)?.message ?? "Failed to generate coupons.";
+      setCouponGenMessage({ type: "error", text: String(detail) });
+      setGeneratedCouponCodes([]);
+    } finally {
+      setCouponGenLoading(false);
     }
   };
 
@@ -219,6 +255,68 @@ export function AdminPanel() {
               Logout
             </Button>
           </div>
+
+          <Card className="border-2">
+            <CardHeader className="bg-primary text-white">
+              <h2 className="font-heading text-lg font-semibold">Discount coupons</h2>
+              <p className="text-sm text-white/80">
+                Generate single-use codes. Each code takes a percentage off the fare once (computed at checkout). Share codes with customers to use at checkout.
+              </p>
+            </CardHeader>
+            <CardContent className="p-6">
+              <form onSubmit={handleCouponGenerateSubmit} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="couponCount">How many codes</Label>
+                    <Input
+                      id="couponCount"
+                      type="number"
+                      min={1}
+                      max={250}
+                      value={couponCount}
+                      onChange={(e) => setCouponCount(parseInt(e.target.value, 10) || 1)}
+                      className="mt-1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="couponDiscount">Discount per code (% off fare)</Label>
+                    <Input
+                      id="couponDiscount"
+                      type="number"
+                      min={0.01}
+                      max={100}
+                      step={0.5}
+                      value={couponDiscountPercent}
+                      onChange={(e) => setCouponDiscountPercent(e.target.value)}
+                      className="mt-1"
+                      placeholder="e.g. 10"
+                      required
+                    />
+                  </div>
+                </div>
+                {couponGenMessage && (
+                  <div className={`rounded-lg px-4 py-3 text-sm ${couponGenMessage.type === "success" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                    {couponGenMessage.text}
+                  </div>
+                )}
+                <Button type="submit" variant="accent" className="text-primary" disabled={couponGenLoading}>
+                  {couponGenLoading ? "Generating…" : "Generate codes"}
+                </Button>
+                {generatedCouponCodes.length > 0 && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Codes (one per line)</Label>
+                    <textarea
+                      readOnly
+                      className="mt-2 w-full min-h-[140px] border border-border bg-muted/30 p-3 font-mono text-sm"
+                      value={generatedCouponCodes.join("\n")}
+                      onFocus={(e) => e.target.select()}
+                    />
+                  </div>
+                )}
+              </form>
+            </CardContent>
+          </Card>
 
           <Card className="border-2">
             <CardHeader className="bg-primary text-white">
