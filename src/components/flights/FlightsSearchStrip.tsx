@@ -71,6 +71,45 @@ export function FlightsSearchStrip({
     setFormError(null);
   }, [syncKey, urlOrigin, urlDest, urlDeparture, urlReturn, urlPassengers, urlCabin]);
 
+  /** Keep the address bar (and flight cards' booking links) in sync when travellers or cabin change without clicking Modify Search. */
+  useEffect(() => {
+    const urlPax = urlPassengers || "1";
+    const urlCabNorm = (urlCabin || "economy").toLowerCase();
+    if (passengers === urlPax && cabinValue.toLowerCase() === urlCabNorm) return;
+
+    const origin = originCode.trim();
+    const destination = destCode.trim();
+    const dep = departure.trim();
+    if (!origin || !destination || !dep) return;
+    if (origin.length !== 3 || destination.length !== 3) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dep)) return;
+    if (tripType === "round" && returnDate.trim() && !/^\d{4}-\d{2}-\d{2}$/.test(returnDate.trim())) return;
+
+    const params = new URLSearchParams({
+      origin,
+      destination,
+      departure: dep,
+      passengers,
+      cabin: cabinValue,
+      currency: currency || "INR",
+    });
+    if (tripType === "round" && returnDate.trim()) params.set("return", returnDate.trim());
+
+    router.replace(`/flights?${params.toString()}`);
+  }, [
+    passengers,
+    cabinValue,
+    urlPassengers,
+    urlCabin,
+    originCode,
+    destCode,
+    departure,
+    returnDate,
+    tripType,
+    currency,
+    router,
+  ]);
+
   const swapCities = () => {
     setOriginCode(destCode);
     setOriginDisplay(destDisplay);
