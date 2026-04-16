@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,21 +15,19 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMyGiftCards, type GiftCard } from "@/services/giftcards";
-import { createBookingOrder, createBooking, type CreateBookingPayload } from "@/services/booking";
+import {
+  createBookingOrder,
+  createBooking,
+  submitQuoteScreenshot,
+  type CreateBookingPayload,
+} from "@/services/booking";
 import { validateCoupon } from "@/services/coupons";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
 import { usdToInr, formatInr } from "@/lib/currency";
+import { computeTierDiscount, TIER_L1_INR, TIER_L2_INR } from "@/lib/pricing";
+import { isDomesticIndiaRoute } from "@/lib/indianAirports";
 import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
 import { PremiumDateInput } from "@/components/flights/flight-search-fields";
-
-const INDIAN_AIRPORTS = new Set([
-  "DEL", "BOM", "BLR", "MAA", "CCU", "HYD", "COK", "GOI", "AMD", "TRV", "IXC",
-  "LKO", "PNQ", "ATQ", "BBI", "GAU", "SXR", "JAI", "VNS", "IXB", "BHO", "IDR",
-]);
-
-function isDomestic(from: string, to: string): boolean {
-  return INDIAN_AIRPORTS.has((from || "").toUpperCase()) && INDIAN_AIRPORTS.has((to || "").toUpperCase());
-}
 
 function computeAgeFromDob(dob: string): number | null {
   if (!dob || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return null;
@@ -138,6 +136,12 @@ function BookingContent() {
       ? price * passengerCountNum
       : usdToInr(price * passengerCountNum);
 
+  const grossFareInr = totalAmount;
+  const { tierDiscountInr, subtotalAfterTier, tierPercent } = useMemo(
+    () => computeTierDiscount(grossFareInr),
+    [grossFareInr]
+  );
+
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponFieldError, setCouponFieldError] = useState("");
@@ -151,8 +155,8 @@ function BookingContent() {
     discountAmountInr?: number;
   } | null>(null);
 
-  const payableAmount = appliedCoupon ? appliedCoupon.payableInr : totalAmount;
-  const domestic = isDomestic(from, to);
+  const payableAmount = appliedCoupon ? appliedCoupon.payableInr : subtotalAfterTier;
+  const domestic = isDomesticIndiaRoute(from, to);
   const tripLabel = tripType === "round" ? "Round trip" : "One way";
 
   const passengerCount = Math.max(1, parseInt(passengers, 10) || 1);
@@ -175,6 +179,11 @@ function BookingContent() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [paymentError, setPaymentError] = useState("");
   const [showGiftCardPin, setShowGiftCardPin] = useState(false);
+  const [quoteFile, setQuoteFile] = useState<File | null>(null);
+  const [quoteNote, setQuoteNote] = useState("");
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState("");
+  const [quoteSuccessRef, setQuoteSuccessRef] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -265,7 +274,7 @@ function BookingContent() {
     setCouponFieldError("");
     setCouponLoading(true);
     try {
-      const res = await validateCoupon(raw, totalAmount);
+      const res = await validateCoupon(raw, subtotalAfterTier);
       if (!res.valid) {
         setAppliedCoupon(null);
         setCouponFieldError(res.message || "This code cannot be applied.");
@@ -274,7 +283,7 @@ function BookingContent() {
       setAppliedCoupon({
         code: (res.code || raw).toUpperCase(),
         discountInr: res.discount_inr ?? 0,
-        payableInr: Math.max(0, res.payable_inr ?? totalAmount),
+        payableInr: Math.max(0, res.payable_inr ?? subtotalAfterTier),
         discountType: res.discount_type === "inr" ? "inr" : "percent",
         discountPercent: res.discount_percent,
         discountAmountInr: res.discount_amount_inr,
@@ -294,6 +303,46 @@ function BookingContent() {
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setCouponFieldError("");
+  };
+
+  const handleQuoteScreenshotSubmit = async () => {
+    if (!quoteFile) {
+      setQuoteError("Choose a screenshot or PDF to upload.");
+      return;
+    }
+    if (!email.trim() || phone.trim().length < 8) {
+      setQuoteError("Please fill email and phone above first.");
+      return;
+    }
+    setQuoteError("");
+    setQuoteLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", quoteFile);
+      fd.append("name", primaryName.trim() || "Customer");
+      fd.append("email", email.trim());
+      fd.append("phone", phone.trim());
+      fd.append("from_place", from);
+      fd.append("to_place", to);
+      fd.append("message", quoteNote.trim());
+      fd.append("trip_type", tripType);
+      fd.append("cabin", seatClass);
+      fd.append("travelers", passengers);
+      fd.append("check_in", checkIn);
+      fd.append("check_out", checkOut);
+      const res = await submitQuoteScreenshot(fd);
+      setQuoteSuccessRef(res.reference);
+      setQuoteFile(null);
+      setQuoteNote("");
+    } catch (err: unknown) {
+      const detail =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : (err as Error)?.message;
+      setQuoteError(detail || "Upload failed.");
+    } finally {
+      setQuoteLoading(false);
+    }
   };
 
   const handlePayWithRazorpay = async () => {
@@ -343,6 +392,8 @@ function BookingContent() {
     paymentPin?: string,
     giftcards?: { giftcardCode: string; amountUsed: number }[]
   ) => {
+    const safeGross =
+      Number.isFinite(grossFareInr) && grossFareInr > 0 ? grossFareInr : totalAmount;
     const payload: CreateBookingPayload = {
       name: primaryName,
       email: email.trim(),
@@ -354,6 +405,7 @@ function BookingContent() {
       checkOut,
       class: seatClass,
       travelers: passengers,
+      grossFareInr: safeGross,
     };
     if (user?.customer_id) payload.customerId = user.customer_id;
     if (passengerDetails.length >= passengerCount) {
@@ -374,7 +426,7 @@ function BookingContent() {
     }
     if (appliedCoupon) {
       payload.couponCode = appliedCoupon.code;
-      payload.orderAmountInr = totalAmount;
+      payload.orderAmountInr = subtotalAfterTier;
     }
     try {
       const res = await createBooking(payload);
@@ -541,11 +593,21 @@ function BookingContent() {
                     </div>
                   </dl>
                   <div className="border-t border-border pt-3 space-y-1">
+                    <div className="flex justify-between gap-2 text-xs text-muted-foreground">
+                      <span>Fare total</span>
+                      <span>{formatInr(grossFareInr)}</span>
+                    </div>
+                    {tierDiscountInr > 0 ? (
+                      <div className="flex justify-between gap-2 text-xs font-medium text-emerald-800">
+                        <span>Volume discount ({Math.round(tierPercent * 100)}%)</span>
+                        <span>−{formatInr(tierDiscountInr)}</span>
+                      </div>
+                    ) : null}
                     {appliedCoupon ? (
                       <>
                         <div className="flex justify-between gap-2 text-xs text-muted-foreground">
-                          <span>Subtotal</span>
-                          <span>{formatInr(totalAmount)}</span>
+                          <span>After volume discount</span>
+                          <span>{formatInr(subtotalAfterTier)}</span>
                         </div>
                         <div className="flex justify-between gap-2 text-xs text-emerald-700 font-medium">
                           <span>
@@ -804,6 +866,48 @@ function BookingContent() {
                         ))}
                       </>
                     )}
+
+                    <div className="space-y-3 border border-dashed border-border bg-muted/20 p-4">
+                      <p className="text-sm font-semibold text-foreground">Found a better price elsewhere?</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Upload a screenshot or PDF of the competing fare. We will email you within 12 hours with our best price. Reference will be sent
+                        to your email.
+                      </p>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Optional note</Label>
+                        <Input
+                          className="mt-1"
+                          placeholder="e.g. website name, fare conditions"
+                          value={quoteNote}
+                          onChange={(e) => setQuoteNote(e.target.value)}
+                          disabled={quoteLoading}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Screenshot / PDF</Label>
+                        <input
+                          type="file"
+                          accept="image/*,.pdf,application/pdf"
+                          className="mt-1 block w-full text-sm text-muted-foreground file:mr-3 file:rounded-none file:border file:border-border file:bg-card file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground"
+                          onChange={(e) => {
+                            const picked = e.target.files?.[0];
+                            setQuoteFile(picked ?? null);
+                            setQuoteError("");
+                          }}
+                          disabled={quoteLoading}
+                        />
+                      </div>
+                      {quoteError ? <p className="text-sm text-red-700">{quoteError}</p> : null}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => void handleQuoteScreenshotSubmit()}
+                        disabled={quoteLoading || !quoteFile}
+                      >
+                        {quoteLoading ? "Sending…" : "Submit screenshot"}
+                      </Button>
+                    </div>
+
                     <div className="flex flex-wrap gap-2 border-t border-border pt-4">
                       <Button variant="outline" onClick={() => router.push(flightsResultsHref)}>
                         Back to results
@@ -832,6 +936,7 @@ function BookingContent() {
                     <h2 className="mt-0.5 font-heading text-lg font-semibold sm:text-xl">Payment</h2>
                     <p className="mt-0.5 text-xs text-primary-foreground/85 sm:text-sm">
                       {formatInr(payableAmount)} due
+                      {tierDiscountInr > 0 ? ` (includes ${Math.round(tierPercent * 100)}% volume discount)` : ""}
                       {appliedCoupon ? ` after coupon` : ""} — choose a method below.
                     </p>
                   </CardHeader>
@@ -883,7 +988,8 @@ function BookingContent() {
                         </p>
                       ) : (
                         <p className="text-xs text-muted-foreground">
-                          Percent-off or fixed-INR codes apply to this fare only; one use per code.
+                          Percent-off or fixed-INR codes apply after volume discounts. One use per code. Automatic
+                          discounts: {formatInr(TIER_L1_INR)}+ = 2% off fare, {formatInr(TIER_L2_INR)}+ = 4% off fare.
                         </p>
                       )}
                     </div>
@@ -1161,6 +1267,20 @@ function BookingContent() {
         </div>
       </main>
       <Footer />
+      {quoteSuccessRef ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
+          <div className="flex max-h-[90vh] w-full max-w-md flex-col gap-4 overflow-y-auto border border-border bg-card p-6 shadow-lg">
+            <h3 className="font-heading text-lg font-semibold text-primary">We received your screenshot</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Reference <span className="font-mono font-semibold text-foreground">{quoteSuccessRef}</span>. Our team will get back to you within 12 hours
+              with the best price we can offer. A confirmation has been sent to your email.
+            </p>
+            <Button variant="accent" className="text-primary w-full sm:w-auto" onClick={() => setQuoteSuccessRef(null)}>
+              OK
+            </Button>
+          </div>
+        </div>
+      ) : null}
       <PaymentPinEntry
         open={showGiftCardPin}
         onClose={() => setShowGiftCardPin(false)}

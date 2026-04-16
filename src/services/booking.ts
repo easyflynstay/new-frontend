@@ -27,10 +27,12 @@ export interface CreateBookingPayload {
   customerId?: string;
   /** Required when paying with gift card: 6-digit payment PIN */
   paymentPin?: string;
-  /** Single-use coupon (must send orderAmountInr = pre-discount total in INR) */
+  /** Single-use coupon */
   couponCode?: string;
-  /** Pre-discount booking total in INR; required when couponCode is set */
+  /** Fare in INR after volume-tier discount; must match server tier math when couponCode is set */
   orderAmountInr?: number;
+  /** Fare subtotal before volume-tier discount (required by API; matches checkout fare total). */
+  grossFareInr: number;
 }
 
 export interface BookingResponse {
@@ -161,3 +163,13 @@ export function getTicketDownloadUrl(bookingId: string, email?: string): string 
   if (base) return `${base}${pathAndQuery}`;
   return pathAndQuery;
 }
+
+export async function submitQuoteScreenshot(form: FormData): Promise<{ ok: boolean; reference: string; message?: string }> {
+  const { data } = await api.post<{ ok: boolean; reference: string; message?: string }>(
+    "/booking/quote-screenshot",
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return data;
+}
+

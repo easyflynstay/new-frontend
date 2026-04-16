@@ -87,7 +87,7 @@ function FlightsContent() {
         departure,
         passengers,
         cabin,
-        max: "50",
+        max: "250",
         currency,
       };
       if (returnDate) params["return"] = returnDate;
