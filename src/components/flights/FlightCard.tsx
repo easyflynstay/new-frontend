@@ -139,6 +139,19 @@ export function FlightCard({
   const displayPrice = currency === "USD" ? usdToInr(price) : price;
   const priceDisplay = formatInr(displayPrice);
 
+  const primaryFlightNumber =
+    segments.length > 0
+      ? `${segments[0].carrierCode}${segments[0].flightNumber}`.replace(/\s+/g, "")
+      : "";
+  const layoverSummary = segments
+    .map((s) => s.layoverAfter)
+    .filter(Boolean)
+    .join(" · ");
+
+  const segmentsEncoded =
+    segments.length > 0 ? `&segments=${encodeURIComponent(JSON.stringify(segments))}` : "";
+  const bookingHref = `/booking?flightId=${id}&from=${departureCode}&to=${arrivalCode}&cabin=${cabin}&price=${price}&currency=${currency || "INR"}&airline=${encodeURIComponent(airlineName)}&flightNumber=${encodeURIComponent(primaryFlightNumber)}&departureTime=${encodeURIComponent(departureTime)}&arrivalTime=${encodeURIComponent(arrivalTime)}&stops=${stops}&layoverTime=${encodeURIComponent(layoverSummary)}&journeyDuration=${encodeURIComponent(duration)}${segmentsEncoded}${departureDate ? `&departure=${departureDate}` : ""}${returnDate ? `&return=${returnDate}` : ""}&passengers=${passengers}`;
+
   return (
     <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
       <Card className={cn("overflow-hidden border shadow-card transition-all hover:shadow-card-hover hover:border-accent/40", className)}>
@@ -286,7 +299,7 @@ export function FlightCard({
                 </svg>
               </button>
             </div>
-            <Link href={`/booking?flightId=${id}&from=${departureCode}&to=${arrivalCode}&cabin=${cabin}&price=${price}&currency=${currency || "INR"}&airline=${encodeURIComponent(airlineName)}${departureDate ? `&departure=${departureDate}` : ""}${returnDate ? `&return=${returnDate}` : ""}&passengers=${passengers}`}>
+            <Link href={bookingHref}>
               <Button variant="accent" className="text-primary text-xs px-6">SELECT FLIGHT</Button>
             </Link>
           </div>

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, isValidEmail } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMyGiftCards, type GiftCard } from "@/services/giftcards";
 import {
@@ -20,6 +20,7 @@ import {
   createBooking,
   submitQuoteScreenshot,
   type CreateBookingPayload,
+  type FlightSegmentSnapshot,
 } from "@/services/booking";
 import { validateCoupon } from "@/services/coupons";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
@@ -28,6 +29,7 @@ import { computeTierDiscount, TIER_L1_INR, TIER_L2_INR } from "@/lib/pricing";
 import { isDomesticIndiaRoute } from "@/lib/indianAirports";
 import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
 import { PremiumDateInput } from "@/components/flights/flight-search-fields";
+import { getAxiosErrorMessage } from "@/lib/api";
 
 function computeAgeFromDob(dob: string): number | null {
   if (!dob || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return null;
@@ -111,9 +113,17 @@ function BookingContent() {
   const price = parseFloat(searchParams.get("price") || "0");
   const currencyFromUrl = (searchParams.get("currency") || "INR").toUpperCase();
   const airline = searchParams.get("airline") || "";
+  const flightNumberFromUrl = searchParams.get("flightNumber") || "";
+  const departureTimeFromUrl = searchParams.get("departureTime") || "";
+  const arrivalTimeFromUrl = searchParams.get("arrivalTime") || "";
+  const stopsFromUrl = searchParams.get("stops");
+  const layoverTimeFromUrl = searchParams.get("layoverTime") || "";
+  const journeyDurationFromUrl = searchParams.get("journeyDuration") || "";
+  const segmentsParam = searchParams.get("segments") || "";
   const departure = searchParams.get("departure") || "";
   const returnDate = searchParams.get("return") || "";
   const passengers = searchParams.get("passengers") || "1";
+  const stopsParsed = stopsFromUrl != null && stopsFromUrl !== "" ? parseInt(stopsFromUrl, 10) : undefined;
 
   const flightsResultsHref = buildFlightsResultsHref({
     from,
@@ -137,6 +147,18 @@ function BookingContent() {
       : usdToInr(price * passengerCountNum);
 
   const grossFareInr = totalAmount;
+
+  const flightSegmentsFromUrl = useMemo((): FlightSegmentSnapshot[] | undefined => {
+    if (!segmentsParam.trim()) return undefined;
+    try {
+      const parsed: unknown = JSON.parse(segmentsParam);
+      if (!Array.isArray(parsed) || parsed.length === 0) return undefined;
+      return parsed as FlightSegmentSnapshot[];
+    } catch {
+      return undefined;
+    }
+  }, [segmentsParam]);
+
   const { tierDiscountInr, subtotalAfterTier, tierPercent } = useMemo(
     () => computeTierDiscount(grossFareInr),
     [grossFareInr]
@@ -258,7 +280,7 @@ function BookingContent() {
     [passengerDetails[0]?.firstName, passengerDetails[0]?.lastName].filter(Boolean).join(" ").trim() || name.trim();
 
   const canProceedPassenger =
-    email.trim().length > 0 &&
+    isValidEmail(email) &&
     phone.trim().length >= 10 &&
     passengerDetails.length >= passengerCount &&
     passengerDetails
@@ -290,11 +312,7 @@ function BookingContent() {
       });
     } catch (err: unknown) {
       setAppliedCoupon(null);
-      const detail =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
-          : (err as Error)?.message;
-      setCouponFieldError(detail || "Could not validate coupon.");
+      setCouponFieldError(getAxiosErrorMessage(err, "Could not validate coupon."));
     } finally {
       setCouponLoading(false);
     }
@@ -335,11 +353,7 @@ function BookingContent() {
       setQuoteFile(null);
       setQuoteNote("");
     } catch (err: unknown) {
-      const detail =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
-          : (err as Error)?.message;
-      setQuoteError(detail || "Upload failed.");
+      setQuoteError(getAxiosErrorMessage(err, "Upload failed."));
     } finally {
       setQuoteLoading(false);
     }
@@ -351,8 +365,9 @@ function BookingContent() {
     try {
       const charge = razorpayChargeableInr(payableAmount);
       if (charge <= 0) {
-        await submitBooking();
+        const ok = await submitBooking();
         setSubmitLoading(false);
+        if (!ok) return;
         return;
       }
       await loadRazorpayScript();
@@ -365,8 +380,11 @@ function BookingContent() {
         userEmail: email,
         userContact: phone ? (phone.startsWith("+") ? phone : `+91${phone.replace(/\D/g, "").slice(-10)}`) : undefined,
         onSuccess: async () => {
-          await submitBooking();
-          setSubmitLoading(false);
+          try {
+            await submitBooking();
+          } finally {
+            setSubmitLoading(false);
+          }
         },
         onDismiss: () => {
           setSubmitLoading(false);
@@ -378,10 +396,7 @@ function BookingContent() {
         },
       });
     } catch (err: unknown) {
-      const message = err && typeof err === "object" && "response" in err
-        ? (err as { response?: { data?: { detail?: string }; }; message?: string }).response?.data?.detail
-        : (err as Error)?.message;
-      setPaymentError(message || "Payment failed.");
+      setPaymentError(getAxiosErrorMessage(err, "Payment failed."));
       setSubmitLoading(false);
     }
   };
@@ -391,7 +406,7 @@ function BookingContent() {
     giftcardAmountUsed?: number,
     paymentPin?: string,
     giftcards?: { giftcardCode: string; amountUsed: number }[]
-  ) => {
+  ): Promise<boolean> => {
     const safeGross =
       Number.isFinite(grossFareInr) && grossFareInr > 0 ? grossFareInr : totalAmount;
     const payload: CreateBookingPayload = {
@@ -407,6 +422,14 @@ function BookingContent() {
       travelers: passengers,
       grossFareInr: safeGross,
     };
+    if (airline.trim()) payload.airlineName = airline.trim();
+    if (flightNumberFromUrl.trim()) payload.flightNumber = flightNumberFromUrl.trim();
+    if (departureTimeFromUrl.trim()) payload.departureTime = departureTimeFromUrl.trim();
+    if (arrivalTimeFromUrl.trim()) payload.arrivalTime = arrivalTimeFromUrl.trim();
+    if (stopsParsed !== undefined && !Number.isNaN(stopsParsed)) payload.stops = stopsParsed;
+    if (layoverTimeFromUrl.trim()) payload.layoverTime = layoverTimeFromUrl.trim();
+    if (journeyDurationFromUrl.trim()) payload.journeyDuration = journeyDurationFromUrl.trim();
+    if (flightSegmentsFromUrl?.length) payload.flightSegments = flightSegmentsFromUrl;
     if (user?.customer_id) payload.customerId = user.customer_id;
     if (passengerDetails.length >= passengerCount) {
       payload.passengerDetails = passengerDetails.slice(0, passengerCount).map((p) => ({
@@ -430,15 +453,16 @@ function BookingContent() {
     }
     try {
       const res = await createBooking(payload);
+      if (res.webhook_payload != null) {
+        console.log("[booking webhook JSON]", JSON.stringify(res.webhook_payload, null, 2));
+      }
       setBookingId(res.booking_id);
       if (res.tracking_link) setTrackingLink(res.tracking_link);
       setStep(3);
+      return true;
     } catch (err: unknown) {
-      const detail = err && typeof err === "object" && "response" in err
-        ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
-        : (err as Error)?.message;
-      setPaymentError(detail || "Booking failed.");
-      throw err;
+      setPaymentError(getAxiosErrorMessage(err, "Booking failed."));
+      return false;
     }
   };
 
@@ -457,19 +481,17 @@ function BookingContent() {
     setPaymentError("");
     try {
       const giftcardsPayload = allocations.items.map((it) => ({ giftcardCode: it.code, amountUsed: it.amountUsed }));
+      let ok = false;
       if (giftcardsPayload.length > 1) {
-        await submitBooking(undefined, undefined, pin, giftcardsPayload);
+        ok = await submitBooking(undefined, undefined, pin, giftcardsPayload);
       } else if (giftcardsPayload.length === 1) {
-        await submitBooking(giftcardsPayload[0].giftcardCode, giftcardsPayload[0].amountUsed, pin);
+        ok = await submitBooking(giftcardsPayload[0].giftcardCode, giftcardsPayload[0].amountUsed, pin);
       } else {
         throw new Error("No gift cards selected.");
       }
-      setShowGiftCardPin(false);
+      if (ok) setShowGiftCardPin(false);
     } catch (err: unknown) {
-      const detail = err && typeof err === "object" && "response" in err
-        ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
-        : undefined;
-      setPaymentError(detail || "Booking failed.");
+      setPaymentError(getAxiosErrorMessage(err, "Booking failed."));
     } finally {
       setSubmitLoading(false);
     }

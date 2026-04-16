@@ -7,6 +7,23 @@ export interface PassengerDetail {
   gender: string;
 }
 
+/** Matches API FlightSegmentResponse / search card segments (connecting flights). */
+export interface FlightSegmentSnapshot {
+  carrierCode: string;
+  carrierName: string;
+  flightNumber: string;
+  aircraft: string;
+  departureAirport: string;
+  departureTime: string;
+  departureTerminal: string;
+  arrivalAirport: string;
+  arrivalTime: string;
+  arrivalTerminal: string;
+  duration: string;
+  stops: number;
+  layoverAfter?: string;
+}
+
 export interface CreateBookingPayload {
   name: string;
   email: string;
@@ -33,6 +50,17 @@ export interface CreateBookingPayload {
   orderAmountInr?: number;
   /** Fare subtotal before volume-tier discount (required by API; matches checkout fare total). */
   grossFareInr: number;
+  /** Optional snapshot from flight results (camelCase matches API). */
+  airlineName?: string;
+  flightNumber?: string;
+  departureTime?: string;
+  arrivalTime?: string;
+  stops?: number;
+  layoverTime?: string;
+  /** Wall-clock total journey (e.g. "8h 45m"); from search card. */
+  journeyDuration?: string;
+  /** Per-leg details when itinerary has stops / connections. */
+  flightSegments?: FlightSegmentSnapshot[];
 }
 
 export interface BookingResponse {
@@ -41,6 +69,8 @@ export interface BookingResponse {
   message: string;
   tracking_link?: string;
   email_sent?: boolean;
+  /** Same object the server POSTs to BOOKING_WEBHOOK_URL (if configured). */
+  webhook_payload?: Record<string, unknown>;
 }
 
 export interface BookingOrderResponse {

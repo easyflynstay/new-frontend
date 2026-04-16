@@ -34,4 +34,33 @@ api.interceptors.response.use(
   }
 );
 
+/** FastAPI returns `detail` as a string (400) or an array of Pydantic validation objects (422). */
+export function formatApiErrorDetail(detail: unknown): string {
+  if (detail == null) return "";
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => {
+        if (item && typeof item === "object" && "msg" in item) {
+          return String((item as { msg?: string }).msg ?? "");
+        }
+        return typeof item === "string" ? item : JSON.stringify(item);
+      })
+      .filter(Boolean)
+      .join("; ");
+  }
+  if (typeof detail === "object") return JSON.stringify(detail);
+  return String(detail);
+}
+
+export function getAxiosErrorMessage(err: unknown, fallback = "Something went wrong."): string {
+  if (err && typeof err === "object" && "response" in err) {
+    const detail = (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail;
+    const text = formatApiErrorDetail(detail);
+    if (text) return text;
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
+
 export default api;
