@@ -29,21 +29,45 @@ export interface RenewPayload {
 }
 
 export async function getMyGiftCards(): Promise<GiftCard[]> {
-  const { data } = await api.get<{ giftcards: GiftCard[] }>("/giftcards/my");
-  return data.giftcards;
+  const { data } = await api.get<{ giftcards?: GiftCard[] }>("/giftcards/my");
+  return Array.isArray(data?.giftcards) ? data.giftcards : [];
 }
 
-export async function buyGiftCard(amount: number): Promise<GiftCardBuyResponse> {
-  const { data } = await api.post<GiftCardBuyResponse>("/giftcards/buy", { amount });
+export type GiftCardEliteShipping = {
+  apartment: string;
+  street: string;
+  city: string;
+  district: string;
+  pincode: string;
+};
+
+export async function buyGiftCard(
+  faceValue: number,
+  shipping?: GiftCardEliteShipping
+): Promise<GiftCardBuyResponse> {
+  const { data } = await api.post<GiftCardBuyResponse>("/giftcards/buy", {
+    face_value: faceValue,
+    ...(shipping ? { shipping } : {}),
+  });
   return data;
 }
+
+export type GiftCardVerifyResult = {
+  message: string;
+  giftcard_id: string;
+  code: string;
+  balance: string;
+  expiry_date: string;
+};
 
 export async function verifyGiftCardPayment(payload: {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
-}) {
-  const { data } = await api.post("/giftcards/verify-payment", payload);
+  face_value: number;
+  shipping?: GiftCardEliteShipping;
+}): Promise<GiftCardVerifyResult> {
+  const { data } = await api.post<GiftCardVerifyResult>("/giftcards/verify-payment", payload);
   return data;
 }
 

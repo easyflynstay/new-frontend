@@ -5,41 +5,33 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  getMyGiftCards,
-  buyGiftCard,
-  verifyGiftCardPayment,
-  transferGiftCard,
-  renewGiftCard,
-  type GiftCard,
-} from "@/services/giftcards";
-import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
-import { maskGiftCardCode } from "@/lib/utils";
+import { getMyGiftCards, transferGiftCard, renewGiftCard, type GiftCard } from "@/services/giftcards";
+import { getAxiosErrorMessage } from "@/lib/api";
+import { maskGiftCardCode, cn } from "@/lib/utils";
 import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
-
-function tierFromAmount(amount: number) {
-  if (amount >= 250000) return { tier: "Signature", gradient: "from-gray-900 via-gray-800 to-gray-900", textColor: "text-gray-100" };
-  if (amount >= 100000) return { tier: "Elite", gradient: "from-amber-400 via-yellow-300 to-amber-500", textColor: "text-amber-950" };
-  // Prime: 50k+ and also under 50k (all below Elite)
-  return { tier: "Prime", gradient: "from-slate-300 via-slate-200 to-slate-400", textColor: "text-slate-700" };
-}
-
-const presetAmounts = [1000, 5000, 10000, 25000, 50000, 100000];
+import {
+  getGiftCardTierFromAmount,
+  giftCardTierStyles,
+  giftCardVariantFromTier,
+} from "@/lib/gift-card-tiers";
+import { dateIsoToMmYy } from "@/lib/gift-card-format";
+import { GiftCardVisual, giftCardClassName, GiftCardPurchaseForm } from "@/components/gift-card";
 
 export default function GiftCardsPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"my-cards" | "buy" | "transfer">("my-cards");
+  const [activeTab, setActiveTab] = useState<"my-cards" | "buy" | "transfer">("buy");
   const [cards, setCards] = useState<GiftCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // Buy state
-  const [buyAmount, setBuyAmount] = useState("");
-  const [buyLoading, setBuyLoading] = useState(false);
-  const [buyError, setBuyError] = useState("");
-  const [buySuccess, setBuySuccess] = useState<{ code: string; balance: string } | null>(null);
+  const [buySuccess, setBuySuccess] = useState<{
+    code: string;
+    balance: string;
+    expiryDate: string;
+    amount: number;
+  } | null>(null);
 
   // Transfer state
   const [recipientEmail, setRecipientEmail] = useState("");
@@ -59,8 +51,12 @@ export default function GiftCardsPage() {
     try {
       const data = await getMyGiftCards();
       setCards(data);
-    } catch {
-      setError("Failed to load gift cards.");
+    } catch (e) {
+      const msg = getAxiosErrorMessage(
+        e,
+        "Failed to load gift cards. Is the API running? (e.g. backend on port 8000 and NEXT_PUBLIC_API_URL in .env.)"
+      );
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -69,60 +65,6 @@ export default function GiftCardsPage() {
   useEffect(() => {
     fetchCards();
   }, [fetchCards]);
-
-  const handleBuy = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const amount = parseFloat(buyAmount);
-    if (!amount || amount < 1) {
-      setBuyError("Please enter a valid amount (minimum ₹1).");
-      return;
-    }
-    setBuyLoading(true);
-    setBuyError("");
-    setBuySuccess(null);
-
-    try {
-      await loadRazorpayScript();
-      const order = await buyGiftCard(amount);
-
-      openRazorpayCheckout({
-        orderId: order.order_id,
-        amountPaise: order.amount,
-        currency: order.currency,
-        userName: user ? `${user.first_name} ${user.last_name}` : undefined,
-        userEmail: user?.email,
-        onSuccess: async (response) => {
-          try {
-            const result = await verifyGiftCardPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-            setBuySuccess({ code: result.code, balance: result.balance });
-            setBuyAmount("");
-            fetchCards();
-          } catch (err: unknown) {
-            const detail = err && typeof err === "object" && "response" in err
-              ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
-              : undefined;
-            setBuyError(detail || "Payment verified but gift card creation failed.");
-          } finally {
-            setBuyLoading(false);
-          }
-        },
-        onDismiss: () => {
-          setBuyLoading(false);
-          setBuyError("Payment was cancelled.");
-        },
-      });
-    } catch (err: unknown) {
-      const detail = err && typeof err === "object" && "response" in err
-        ? (err as { response?: { data?: { detail?: string } }; message?: string }).response?.data?.detail
-        : (err as Error)?.message;
-      setBuyError(detail || "Failed to initiate payment.");
-      setBuyLoading(false);
-    }
-  };
 
   const handleTransferSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,7 +121,7 @@ export default function GiftCardsPage() {
   const activeCards = cards.filter((c) => c.status === "active");
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full max-w-screen-2xl">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="font-heading text-2xl font-bold text-foreground">Gift Cards</h1>
         <p className="mt-1 text-muted-foreground">
@@ -190,8 +132,8 @@ export default function GiftCardsPage() {
       {/* Tabs */}
       <div className="mt-6 flex border-b border-border">
         {[
-          { id: "my-cards" as const, label: "My Cards", icon: "M4 7V4h16v3M9 20h6M12 4v16" },
           { id: "buy" as const, label: "Purchase", icon: "M12 4.5v15m7.5-7.5h-15" },
+          { id: "my-cards" as const, label: "My Cards", icon: "M4 7V4h16v3M9 20h6M12 4v16" },
           { id: "transfer" as const, label: "Transfer", icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" },
         ].map((tab) => (
           <button
@@ -217,11 +159,11 @@ export default function GiftCardsPage() {
       {activeTab === "my-cards" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6">
           {loading ? (
-            <div className="grid gap-6 sm:grid-cols-2">
-              {[1, 2].map((i) => (
-                <div key={i} className="border border-border bg-white shadow-card overflow-hidden animate-pulse">
-                  <div className="h-40 bg-muted" />
-                  <div className="p-4 space-y-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3 xl:gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex flex-col animate-pulse">
+                  <div className="aspect-[85.6/54] w-full max-w-full rounded-[20px] bg-muted" />
+                  <div className="pt-4 space-y-3">
                     <div className="h-4 bg-muted w-2/3" />
                     <div className="h-2 bg-muted" />
                   </div>
@@ -242,60 +184,40 @@ export default function GiftCardsPage() {
                   {renewMsg}
                 </div>
               )}
-              <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3 xl:gap-6 w-full">
                 {cards.map((card) => {
-                  const { tier, gradient, textColor } = tierFromAmount(Number(card.initial_amount));
+                  const tier = getGiftCardTierFromAmount(Number(card.initial_amount));
                   const isExpired = card.status === "expired";
                   const isFrozen = card.status === "frozen";
+                  const cardHolder =
+                    [user?.first_name, user?.last_name]
+                      .filter((x): x is string => Boolean(x && String(x).trim()))
+                      .join(" ")
+                      .trim() || "Member";
                   return (
                     <motion.div
                       key={card.giftcard_id}
-                      whileHover={{ y: -4 }}
-                      className="border border-border bg-white shadow-card overflow-hidden"
+                      className="flex w-full min-w-0 flex-col"
                     >
-                      <div
-                        className={cn(
-                          "relative h-48 bg-gradient-to-br p-6 flex flex-col justify-between",
-                          gradient,
-                          (isExpired || isFrozen) && "opacity-60"
-                        )}
-                      >
-                        <div className="absolute inset-0 opacity-15">
-                          <svg className="h-full w-full" viewBox="0 0 300 192" fill="none">
-                            <circle cx="260" cy="30" r="90" fill="white" fillOpacity="0.15" />
-                          </svg>
-                        </div>
-                        <div className="relative flex justify-between items-start">
-                          <div>
-                            <p className="text-sm font-bold uppercase tracking-[0.2em] text-black/40">
-                              EasyFlyNStay
-                            </p>
-                            <p className={cn("font-heading text-xl font-bold", textColor)}>
-                              {tier}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {(isExpired || isFrozen) && (
-                              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-black/20 text-white">
-                                {card.status}
-                              </span>
-                            )}
-                            <svg
-                              className="h-5 w-5 text-black/20"
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="relative">
-                          <p className="text-[9px] text-black/30 uppercase tracking-wider">Gift Card Number</p>
-                          <p className="font-mono text-base font-bold tracking-widest text-black/60">{maskGiftCardCode(card.code)}</p>
-                        </div>
-                      </div>
+                      <GiftCardVisual
+                        variant={giftCardVariantFromTier(tier)}
+                        tier={tier}
+                        cardNumber={card.code}
+                        cardHolder={cardHolder}
+                        validFrom={dateIsoToMmYy(card.created_at)}
+                        validThru={dateIsoToMmYy(card.expiry_date)}
+                        dimmed={isExpired || isFrozen}
+                        statusSlot={
+                          isExpired || isFrozen ? (
+                            <span className="rounded-md bg-black/30 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                              {card.status}
+                            </span>
+                          ) : undefined
+                        }
+                        className={giftCardClassName.dashboard}
+                      />
 
-                      <div className="p-4">
+                      <div className="pt-4 sm:pt-5">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs text-muted-foreground">Remaining Balance</span>
                           <span className="font-heading font-bold text-primary">
@@ -385,7 +307,7 @@ export default function GiftCardsPage() {
       {/* ── Purchase ── */}
       {activeTab === "buy" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6">
-          <div className="border border-border bg-white shadow-card overflow-hidden">
+          <div className="border border-border bg-white overflow-hidden">
             <div className="bg-primary px-6 py-4">
               <h3 className="font-heading text-lg font-semibold text-white">Purchase a Gift Card</h3>
               <p className="text-sm text-white/60 mt-0.5">
@@ -422,6 +344,24 @@ export default function GiftCardsPage() {
                       Gift Card Created!
                     </h4>
                     <p className="mt-2 text-muted-foreground">Your gift card is ready to use.</p>
+                    <div className="mt-5 flex w-full max-w-sm mx-auto justify-center text-left">
+                      <GiftCardVisual
+                        variant={giftCardVariantFromTier(
+                          getGiftCardTierFromAmount(buySuccess.amount)
+                        )}
+                        tier={getGiftCardTierFromAmount(buySuccess.amount)}
+                        cardNumber={buySuccess.code}
+                        cardHolder={
+                          [user?.first_name, user?.last_name]
+                            .filter((x): x is string => Boolean(x && String(x).trim()))
+                            .join(" ")
+                            .trim() || "Member"
+                        }
+                        validFrom={dateIsoToMmYy(new Date().toISOString())}
+                        validThru={dateIsoToMmYy(buySuccess.expiryDate)}
+                        className={giftCardClassName.dashboard}
+                      />
+                    </div>
                     <div className="mt-4 inline-block border-2 border-accent bg-accent/5 px-6 py-3">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         Your Gift Card Code
@@ -444,136 +384,31 @@ export default function GiftCardsPage() {
                       >
                         View My Cards
                       </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setBuySuccess(null);
-                          setBuyAmount("");
-                        }}
-                      >
+                      <Button variant="outline" onClick={() => setBuySuccess(null)}>
                         Buy Another
                       </Button>
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.form
+                  <motion.div
                     key="form"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    onSubmit={handleBuy}
-                    className="max-w-md"
                   >
-                    {buyError && (
-                      <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
-                        {buyError}
-                      </div>
-                    )}
-
-                    <Label className="text-sm font-semibold">Enter amount (₹)</Label>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {presetAmounts.map((amt) => (
-                        <button
-                          key={amt}
-                          type="button"
-                          onClick={() => setBuyAmount(String(amt))}
-                          className={cn(
-                            "border-2 px-4 py-2.5 text-sm font-semibold transition-all",
-                            buyAmount === String(amt)
-                              ? "border-accent bg-accent/10 text-accent"
-                              : "border-border hover:border-accent/40 text-foreground"
-                          )}
-                        >
-                          ₹{amt.toLocaleString()}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="mt-4">
-                      <Label className="text-xs text-muted-foreground">Or enter custom amount (no minimum)</Label>
-                      <div className="relative mt-1">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
-                          ₹
-                        </span>
-                        <Input
-                          type="number"
-                          min="1"
-                          step="1"
-                          value={buyAmount}
-                          onChange={(e) => setBuyAmount(e.target.value)}
-                          placeholder="Any amount"
-                          className="pl-8 h-12 text-lg font-semibold"
-                        />
-                      </div>
-                    </div>
-
-                    {buyAmount && parseFloat(buyAmount) > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        className="mt-4 border border-border bg-muted/30 p-4"
-                      >
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Gift card value</span>
-                          <span className="font-semibold">
-                            ₹{parseFloat(buyAmount).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm mt-1">
-                          <span className="text-muted-foreground">Tier</span>
-                          <span className="font-semibold">
-                            {tierFromAmount(parseFloat(buyAmount)).tier}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm mt-1">
-                          <span className="text-muted-foreground">Valid for</span>
-                          <span className="font-semibold">6 months</span>
-                        </div>
-                        <div className="mt-3 border-t border-border pt-3 flex items-center justify-between">
-                          <span className="font-semibold">Total payable</span>
-                          <span className="font-heading text-xl font-bold text-primary">
-                            ₹{parseFloat(buyAmount).toLocaleString()}
-                          </span>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    <Button
-                      type="submit"
-                      variant="accent"
-                      size="lg"
-                      className="mt-6 w-full text-primary font-bold"
-                      disabled={buyLoading || !buyAmount || parseFloat(buyAmount) < 1}
-                    >
-                      {buyLoading ? (
-                        <span className="flex items-center gap-2">
-                          <div className="h-4 w-4 border-2 border-primary/30 border-t-primary animate-spin rounded-full" />
-                          Processing...
-                        </span>
-                      ) : (
-                        <>
-                          <svg
-                            className="mr-2 h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                            />
-                          </svg>
-                          Proceed to Payment
-                        </>
-                      )}
-                    </Button>
-
-                    <p className="mt-3 text-center text-[11px] text-muted-foreground">
-                      Secured by Razorpay. Supports UPI, Cards, Net Banking & Wallets.
-                    </p>
-                  </motion.form>
+                    <GiftCardPurchaseForm
+                      user={user}
+                      onPurchased={(data) => {
+                        setBuySuccess({
+                          code: data.code,
+                          balance: data.balance,
+                          expiryDate: data.expiryDate,
+                          amount: data.amount,
+                        });
+                        fetchCards();
+                      }}
+                    />
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
@@ -584,7 +419,7 @@ export default function GiftCardsPage() {
       {/* ── Transfer (tab and card button are hidden; code kept for future use) ── */}
       {activeTab === "transfer" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6">
-          <div className="border border-border bg-white shadow-card overflow-hidden">
+          <div className="border border-border bg-white overflow-hidden">
             <div className="bg-primary px-6 py-4">
               <h3 className="font-heading text-lg font-semibold text-white">Transfer a Gift Card</h3>
               <p className="text-sm text-white/60 mt-0.5">
@@ -617,7 +452,8 @@ export default function GiftCardsPage() {
                     <Label className="text-sm font-semibold">Select Card to Transfer</Label>
                     <div className="mt-2 space-y-2">
                       {activeCards.map((c) => {
-                        const { tier, gradient } = tierFromAmount(Number(c.initial_amount));
+                        const tier = getGiftCardTierFromAmount(Number(c.initial_amount));
+                        const t = giftCardTierStyles[tier];
                         return (
                           <button
                             type="button"
@@ -632,11 +468,15 @@ export default function GiftCardsPage() {
                           >
                             <div
                               className={cn(
-                                "flex h-10 w-10 shrink-0 items-center justify-center bg-gradient-to-br",
-                                gradient
+                                "flex h-10 w-10 shrink-0 items-center justify-center rounded bg-gradient-to-br",
+                                t.gradient
                               )}
                             >
-                              <span className="text-[9px] font-bold text-white/80">{tier[0]}</span>
+                              <span
+                                className={cn("text-[9px] font-bold", t.tierTitle)}
+                              >
+                                {tier[0]}
+                              </span>
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-mono text-sm font-semibold">{maskGiftCardCode(c.code)}</p>

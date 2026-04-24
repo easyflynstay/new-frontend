@@ -11,6 +11,8 @@ import { DealCard } from "@/components/deals/DealCard";
 import { Button } from "@/components/ui/button";
 import { SectionReveal } from "@/components/ui/section-reveal";
 import { formatUsdAsInr } from "@/lib/currency";
+import { GIFT_CARD_DEMO, giftCardVariantFromTier } from "@/lib/gift-card-tiers";
+import { GiftCardVisual, giftCardClassName } from "@/components/gift-card";
 
 const deals = [
   { title: "India", description: "Privately negotiated business class. Save 50–77% off retail fares.", priceUsd: 1529, badge: "BIZ CLASS", image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&h=500&fit=crop&q=85" },
@@ -399,40 +401,16 @@ export default function HomePage() {
                   </Button>
                 </Link>
               </div>
-              <div className="flex justify-center">
-                <div className="relative w-[380px] h-[240px] rounded-xl bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 shadow-2xl border border-white/10 overflow-hidden">
-                  <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none">
-                    <svg className="h-full w-full" viewBox="0 0 400 240" fill="none">
-                      <circle cx="320" cy="40" r="140" fill="white" fillOpacity="0.12" />
-                      <circle cx="60" cy="200" r="100" fill="white" fillOpacity="0.08" />
-                    </svg>
-                  </div>
-                  <div className="relative flex h-full flex-col justify-between p-6">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-bold uppercase tracking-[0.2em] text-amber-950/70">EasyFlyNStay</p>
-                        <p className="font-heading text-lg font-bold mt-1 text-amber-950">Signature</p>
-                      </div>
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-950/15">
-                        <svg className="h-4 w-4 text-amber-950/80" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg>
-                      </div>
-                    </div>
-                    <p className="font-mono text-lg font-semibold tracking-widest text-amber-950/90">XXXX XXXX XXXX 5678</p>
-                    <div className="flex items-end justify-between">
-                      <div className="space-y-0.5">
-                        <p className="text-[9px] uppercase tracking-wider text-amber-950/85">Valid from 03/26</p>
-                        <p className="text-[9px] uppercase tracking-wider text-amber-950/85">Valid thru 03/29</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-amber-950/85">Cardholder</p>
-                        <p className="font-heading text-sm font-bold text-amber-950">Priya Mehta</p>
-                      </div>
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-white/20">
-                        <span className="font-heading text-sm font-bold text-accent">E</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="flex justify-center w-full max-w-[380px] mx-auto">
+                <GiftCardVisual
+                  variant={giftCardVariantFromTier("Signature")}
+                  tier="Signature"
+                  cardNumber={GIFT_CARD_DEMO.Signature.cardNumber}
+                  cardHolder={GIFT_CARD_DEMO.Signature.cardholderName}
+                  validFrom={GIFT_CARD_DEMO.Signature.validFrom}
+                  validThru={GIFT_CARD_DEMO.Signature.validThru}
+                  className={giftCardClassName.marketing}
+                />
               </div>
             </div>
           </SectionReveal>

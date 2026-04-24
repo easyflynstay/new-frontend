@@ -9,72 +9,17 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { SectionReveal } from "@/components/ui/section-reveal";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatInr } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+import {
+  GIFT_TIER_MARKETING,
+  GIFT_CARD_DEMO,
+  tierValueRangeLine,
+  giftCardVariantFromTier,
+  type GiftCardTier,
+} from "@/lib/gift-card-tiers";
+import { GiftCardVisual, giftCardClassName } from "@/components/gift-card";
 
-const tiers = [
-  {
-    name: "Prime",
-    tagline: "The Perfect Start",
-    valueMin: 50000,
-    valueMax: 100000,
-    color: "from-slate-300 via-slate-200 to-slate-400",
-    borderColor: "border-slate-300",
-    textColor: "text-slate-700",
-    accentColor: "text-slate-500",
-    bgCard: "bg-gradient-to-br from-slate-50 to-white",
-    chipBg: "bg-slate-100",
-    features: [
-      "Valid for 12 months",
-      "Redeemable on any flight",
-      "Transferable to friends & family",
-      "Digital delivery via email",
-    ],
-    popular: false,
-  },
-  {
-    name: "Signature",
-    tagline: "Most Popular Choice",
-    valueMin: 100000,
-    valueMax: 250000,
-    color: "from-amber-400 via-yellow-300 to-amber-500",
-    borderColor: "border-accent",
-    textColor: "text-amber-800",
-    accentColor: "text-accent",
-    bgCard: "bg-gradient-to-br from-amber-50/50 to-white",
-    chipBg: "bg-accent/10",
-    features: [
-      "Valid for 24 months",
-      "Redeemable on any flight",
-      "Priority booking assistance",
-      "Complimentary seat upgrade (when available)",
-      "Elegant digital gift card design",
-      "Personal message included",
-    ],
-    popular: true,
-  },
-  {
-    name: "Elite",
-    tagline: "Ultimate Luxury",
-    valueMin: 250000,
-    valueMax: 500000,
-    color: "from-gray-900 via-gray-800 to-black",
-    borderColor: "border-gray-800",
-    textColor: "text-white",
-    accentColor: "text-accent",
-    bgCard: "bg-gradient-to-br from-gray-900 to-black",
-    chipBg: "bg-white/10",
-    features: [
-      "Valid for 36 months",
-      "Redeemable on any flight or hotel",
-      "Dedicated personal travel concierge",
-      "Airport lounge access included",
-      "Premium physical card with gift box",
-      "VIP customer support line",
-    ],
-    popular: false,
-  },
-];
+const TIER_ORDER: GiftCardTier[] = ["Prime", "Signature", "Elite"];
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -86,57 +31,6 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
 };
 
-const cardDesigns = [
-  {
-    name: "Prime",
-    tierLabel: "EFS Prime",
-    cardholderName: "Rahul Sharma",
-    gradient: "from-slate-300 via-slate-200 to-slate-400",
-    valueStr: `${formatInr(50000)} – ${formatInr(100000)}`,
-    cardNumber: "XXXX XXXX XXXX 1234",
-    validFrom: "03/26",
-    validThru: "03/29",
-    nameColor: "text-slate-700",
-    subColor: "text-black/40",
-    valColor: "text-black/50",
-    valTextColor: "text-black/60",
-    iconBg: "bg-black/10",
-    iconColor: "text-black/40",
-  },
-  {
-    name: "Signature",
-    tierLabel: "EFS Signature",
-    cardholderName: "Priya Mehta",
-    gradient: "from-amber-400 via-yellow-300 to-amber-500",
-    valueStr: `${formatInr(100000)} – ${formatInr(250000)}`,
-    cardNumber: "XXXX XXXX XXXX 5678",
-    validFrom: "03/26",
-    validThru: "03/29",
-    nameColor: "text-amber-950",
-    subColor: "text-amber-950/70",
-    valColor: "text-amber-950/85",
-    valTextColor: "text-amber-950",
-    iconBg: "bg-amber-950/15",
-    iconColor: "text-amber-950/80",
-  },
-  {
-    name: "Elite",
-    tierLabel: "EFS Elite",
-    cardholderName: "Arjun Kapoor",
-    gradient: "from-gray-900 via-gray-800 to-black",
-    valueStr: `${formatInr(250000)} – ${formatInr(500000)}`,
-    cardNumber: "XXXX XXXX XXXX 9012",
-    validFrom: "03/26",
-    validThru: "03/29",
-    nameColor: "text-white",
-    subColor: "text-white/50",
-    valColor: "text-white/60",
-    valTextColor: "text-accent",
-    iconBg: "bg-white/10",
-    iconColor: "text-accent",
-  },
-];
-
 function RotatingCards({ active, onSelect }: { active: number; onSelect: (i: number) => void }) {
   const getPosition = (index: number) => {
     const diff = (index - active + 3) % 3;
@@ -147,11 +41,12 @@ function RotatingCards({ active, onSelect }: { active: number; onSelect: (i: num
 
   return (
     <div className="relative h-[320px] w-[420px] mx-auto">
-      {cardDesigns.map((card, i) => {
+      {TIER_ORDER.map((tier, i) => {
+        const demo = GIFT_CARD_DEMO[tier];
         const pos = getPosition(i);
         return (
           <motion.div
-            key={card.name}
+            key={tier}
             animate={{
               x: pos.x,
               y: pos.y,
@@ -161,45 +56,18 @@ function RotatingCards({ active, onSelect }: { active: number; onSelect: (i: num
             }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
             onClick={() => onSelect(i)}
-            className={cn(
-              "absolute left-1/2 top-0 -translate-x-1/2 w-[380px] h-[240px] cursor-pointer rounded-xl bg-gradient-to-br shadow-2xl border border-white/10 overflow-hidden",
-              card.gradient
-            )}
+            className="absolute left-1/2 top-0 -translate-x-1/2 w-[380px] cursor-pointer"
             style={{ zIndex: pos.zIndex }}
           >
-            <div className="absolute inset-0 opacity-20 overflow-hidden">
-              <svg className="h-full w-full" viewBox="0 0 400 240" fill="none">
-                <circle cx="320" cy="40" r="140" fill="white" fillOpacity="0.12" />
-                <circle cx="60" cy="200" r="100" fill="white" fillOpacity="0.08" />
-              </svg>
-            </div>
-            <div className="relative flex h-full flex-col justify-between p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className={cn("text-sm font-bold uppercase tracking-[0.2em]", card.subColor)}>EasyFlyNStay</p>
-                  <p className={cn("font-heading text-lg font-bold mt-1", card.nameColor)}>{card.name}</p>
-                </div>
-                <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", card.iconBg)}>
-                  <svg className={cn("h-4 w-4", card.iconColor)} fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
-                  </svg>
-                </div>
-              </div>
-              <p className={cn("font-mono text-lg font-semibold tracking-widest", card.nameColor)}>{card.cardNumber}</p>
-              <div className="flex items-end justify-between">
-                <div className="space-y-0.5">
-                  <p className={cn("text-[9px] uppercase tracking-wider", card.valColor)}>Valid from {card.validFrom}</p>
-                  <p className={cn("text-[9px] uppercase tracking-wider", card.valColor)}>Valid thru {card.validThru}</p>
-                </div>
-                <div>
-                  <p className={cn("text-[10px] uppercase tracking-wider", card.valColor)}>Cardholder</p>
-                  <p className={cn("font-heading text-sm font-bold", card.nameColor)}>{card.cardholderName}</p>
-                </div>
-                <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded", card.name === "Signature" ? "bg-white/20" : "bg-primary")}>
-                  <span className="font-heading text-sm font-bold text-accent">E</span>
-                </div>
-              </div>
-            </div>
+            <GiftCardVisual
+              variant={giftCardVariantFromTier(tier)}
+              tier={tier}
+              cardNumber={demo.cardNumber}
+              cardHolder={demo.cardholderName}
+              validFrom={demo.validFrom}
+              validThru={demo.validThru}
+              className={giftCardClassName.marketingCarousel}
+            />
           </motion.div>
         );
       })}
@@ -282,9 +150,9 @@ export default function GiftCardsPage() {
             {/* Dots indicator + card name */}
             <div className="mt-8 flex flex-col items-center gap-2">
               <div className="flex gap-2">
-                {cardDesigns.map((c, i) => (
+                {TIER_ORDER.map((name, i) => (
                   <button
-                    key={c.name}
+                    key={name}
                     onClick={() => setActiveCard(i)}
                     className={cn(
                       "h-2 rounded-full transition-all duration-300",
@@ -301,7 +169,7 @@ export default function GiftCardsPage() {
                   exit={{ opacity: 0, y: -5 }}
                   className="text-xs text-white/50 font-medium tracking-wider uppercase"
                 >
-                  {cardDesigns[activeCard].name} Card
+                  {TIER_ORDER[activeCard]} Card
                 </motion.p>
               </AnimatePresence>
             </div>
@@ -323,7 +191,9 @@ export default function GiftCardsPage() {
               viewport={{ once: true }}
               className="grid gap-8 lg:grid-cols-3"
             >
-              {tiers.map((tier) => (
+              {GIFT_TIER_MARKETING.map((tier) => {
+                const vari = giftCardVariantFromTier(tier.name);
+                return (
                 <motion.div key={tier.name} variants={itemVariants}>
                   <motion.div
                     whileHover={{ y: -8, scale: 1.02 }}
@@ -335,36 +205,45 @@ export default function GiftCardsPage() {
                     )}
                   >
                     {tier.popular && (
-                      <div className="absolute -right-8 top-6 rotate-45 bg-accent px-10 py-1 text-xs font-bold text-primary shadow-md">
+                      <div className="absolute -right-8 top-6 rotate-45 bg-accent px-10 py-1 text-xs font-bold text-primary shadow-md z-10">
                         POPULAR
                       </div>
                     )}
 
-                    {/* Card visual - light text on Prime (grey) and Signature (gold) need dark text; Elite (dark) needs white text */}
-                    <div className={cn("relative h-56 overflow-hidden bg-gradient-to-br", tier.color)}>
-                      <div className="absolute inset-0 opacity-20">
-                        <svg className="h-full w-full" viewBox="0 0 400 200" fill="none">
-                          <circle cx="350" cy="50" r="120" fill="white" fillOpacity="0.1" />
-                          <circle cx="50" cy="180" r="80" fill="white" fillOpacity="0.08" />
-                        </svg>
-                      </div>
-                      <div className="relative flex h-full flex-col justify-between p-6">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className={cn("text-sm font-bold uppercase tracking-[0.2em]", tier.name === "Elite" ? "text-white/80" : tier.name === "Signature" ? "text-amber-950/80" : "text-slate-600")}>EasyFlyNStay</p>
-                            <p className={cn("font-heading text-2xl font-bold mt-1", tier.name === "Elite" ? "text-white" : tier.name === "Signature" ? "text-amber-950" : "text-slate-800")}>{tier.name}</p>
-                          </div>
-                          <div className={cn("flex h-10 w-10 items-center justify-center", tier.name === "Elite" ? "bg-white/20" : "bg-black/10")}>
-                            <svg className={cn("h-5 w-5", tier.name === "Elite" ? "text-accent" : tier.name === "Signature" ? "text-amber-950/70" : "text-slate-600")} fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg>
-                          </div>
-                        </div>
+                    <GiftCardVisual
+                      variant={vari}
+                      tier={tier.name}
+                      cardNumber={GIFT_CARD_DEMO[tier.name].cardNumber}
+                      cardHolder={GIFT_CARD_DEMO[tier.name].cardholderName}
+                      validFrom={GIFT_CARD_DEMO[tier.name].validFrom}
+                      validThru={GIFT_CARD_DEMO[tier.name].validThru}
+                      rounded="top"
+                      promoSlot={
                         <div>
-                          <p className={cn("font-mono text-sm font-semibold tracking-widest", tier.name === "Elite" ? "text-white/90" : tier.name === "Signature" ? "text-amber-950/90" : "text-slate-600")}>XXXX XXXX XXXX 1234</p>
-                          <p className={cn("text-xs mt-1", tier.name === "Elite" ? "text-white/70" : tier.name === "Signature" ? "text-amber-950/70" : "text-slate-500")}>Gift Card Value</p>
-                          <p className={cn("font-heading text-xl font-bold", tier.name === "Elite" ? "text-accent" : tier.name === "Signature" ? "text-amber-950" : "text-slate-800")}>{formatInr(tier.valueMin)} – {formatInr(tier.valueMax)}</p>
+                          <p
+                            className={cn(
+                              "text-xs font-medium",
+                              vari === "platinum" && "text-zinc-400",
+                              vari === "gold" && "text-amber-950/80",
+                              vari === "silver" && "text-slate-600"
+                            )}
+                          >
+                            Gift Card Value
+                          </p>
+                          <p
+                            className={cn(
+                              "mt-0.5 font-serif text-lg font-bold sm:text-xl",
+                              vari === "platinum" && "text-[#C9A227]",
+                              vari === "gold" && "text-amber-950",
+                              vari === "silver" && "text-slate-800"
+                            )}
+                          >
+                            {tierValueRangeLine(tier)}
+                          </p>
                         </div>
-                      </div>
-                    </div>
+                      }
+                      className={giftCardClassName.tierFace}
+                    />
 
                     {/* Details - always on light bg (white or amber-50), so use dark text for readability */}
                     <div className="flex flex-1 flex-col p-6 text-foreground">
@@ -398,7 +277,8 @@ export default function GiftCardsPage() {
                     </div>
                   </motion.div>
                 </motion.div>
-              ))}
+                );
+              })}
             </motion.div>
           </div>
         </section>

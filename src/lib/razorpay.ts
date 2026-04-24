@@ -93,7 +93,7 @@ export function openRazorpayCheckout({
     amount: Math.round(Number(amountPaise)),
     currency,
     name: "Easyflynstay",
-    description: "Flight Booking",
+    description: "EasyFlyNStay Gift Card",
     order_id: String(orderId),
     handler: onSuccess,
     prefill: {

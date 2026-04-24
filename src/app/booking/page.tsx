@@ -30,6 +30,9 @@ import { isDomesticIndiaRoute } from "@/lib/indianAirports";
 import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
 import { PremiumDateInput } from "@/components/flights/flight-search-fields";
 import { getAxiosErrorMessage } from "@/lib/api";
+import { getGiftCardTierFromAmount, giftCardVariantFromTier } from "@/lib/gift-card-tiers";
+import { dateIsoToMmYy } from "@/lib/gift-card-format";
+import { GiftCardVisual, giftCardPropsBooking } from "@/components/gift-card";
 
 function computeAgeFromDob(dob: string): number | null {
   if (!dob || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return null;
@@ -1093,16 +1096,22 @@ function BookingContent() {
                                     const last4 = c.code.slice(-4).toUpperCase();
                                     const balance = Number(c.balance);
                                     const checked = selectedGiftCardCodes.includes(c.code);
+                                    const gcTier = getGiftCardTierFromAmount(Number(c.initial_amount));
+                                    const gcHolder =
+                                      [user?.first_name, user?.last_name]
+                                        .filter((x): x is string => Boolean(x && String(x).trim()))
+                                        .join(" ")
+                                        .trim() || "You";
 
                                     return (
                                       <label
                                         key={c.giftcard_id ?? c.code}
                                         className={cn(
-                                          "flex cursor-pointer items-center justify-between gap-4 border p-3 transition-colors",
+                                          "flex cursor-pointer items-stretch justify-between gap-3 border p-2 sm:p-3 transition-colors",
                                           checked ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
                                         )}
                                       >
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                                           <input
                                             type="checkbox"
                                             checked={checked}
@@ -1115,10 +1124,21 @@ function BookingContent() {
                                               });
                                               setGiftCardLast4("");
                                             }}
-                                            className="h-4 w-4 accent-[hsl(var(--accent))]"
+                                            className="h-4 w-4 shrink-0 self-center accent-[hsl(var(--accent))]"
                                           />
-                                          <div className="min-w-0">
-                                            <p className="font-mono text-sm font-semibold text-foreground">
+                                          <div className="hidden w-[220px] shrink-0 self-center sm:block">
+                                            <GiftCardVisual
+                                              variant={giftCardVariantFromTier(gcTier)}
+                                              tier={gcTier}
+                                              cardNumber={c.code}
+                                              cardHolder={gcHolder}
+                                              validFrom={dateIsoToMmYy(c.created_at)}
+                                              validThru={dateIsoToMmYy(c.expiry_date)}
+                                              {...giftCardPropsBooking}
+                                            />
+                                          </div>
+                                          <div className="min-w-0 self-center sm:py-0.5">
+                                            <p className="font-mono text-sm font-semibold text-foreground sm:hidden">
                                               •••• {last4}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
@@ -1127,7 +1147,7 @@ function BookingContent() {
                                           </div>
                                         </div>
 
-                                        <div className="shrink-0 text-right">
+                                        <div className="shrink-0 text-right self-center">
                                           <span className="text-xs text-muted-foreground">
                                             {checked ? "Selected" : "Tap to select"}
                                           </span>
