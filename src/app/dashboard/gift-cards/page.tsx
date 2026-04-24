@@ -307,76 +307,96 @@ export default function GiftCardsPage() {
       {/* ── Purchase ── */}
       {activeTab === "buy" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6">
-          <div className="border border-border bg-white overflow-hidden">
-            <div className="bg-primary px-6 py-4">
-              <h3 className="font-heading text-lg font-semibold text-white">Purchase a Gift Card</h3>
-              <p className="text-sm text-white/60 mt-0.5">
-                Processed securely via Razorpay. Card is bound to your account.
-              </p>
-            </div>
+          <div
+            className={cn(
+              "overflow-hidden",
+              buySuccess ? "border-0 bg-transparent" : "border border-border bg-white"
+            )}
+          >
+            {!buySuccess && (
+              <div className="bg-primary px-6 py-4">
+                <h3 className="font-heading text-lg font-semibold text-white">Purchase a Gift Card</h3>
+                <p className="text-sm text-white/60 mt-0.5">
+                  Processed securely via Razorpay. Card is bound to your account.
+                </p>
+              </div>
+            )}
 
-            <div className="p-6">
+            <div className={cn("p-6", buySuccess && "px-0 sm:px-0 pt-2 pb-6")}>
               <AnimatePresence mode="wait">
                 {buySuccess ? (
                   <motion.div
                     key="success"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="text-center py-6"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    className="text-center"
                   >
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center bg-emerald-50 border border-emerald-200">
-                      <svg
-                        className="h-8 w-8 text-emerald-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
+                    <div className="mx-auto max-w-md rounded-2xl border border-accent/25 bg-gradient-to-b from-amber-50/80 via-white to-white px-6 py-8 sm:px-10 sm:py-10 shadow-[0_1px_0_rgba(201,162,39,0.12),0_24px_48px_-28px_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.85)]">
+                      <div className="mx-auto h-px w-16 bg-gradient-to-r from-transparent via-accent to-transparent opacity-80" />
+                      <div className="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-b from-amber-100/90 to-amber-50/80 ring-1 ring-accent/30">
+                        <svg
+                          className="h-7 w-7 text-amber-800/90"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={1.75}
+                          viewBox="0 0 24 24"
+                          aria-hidden
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                      <p className="mt-5 font-heading text-xs font-semibold uppercase tracking-[0.25em] text-amber-900/50">
+                        Thank you
+                      </p>
+                      <h4 className="mt-2 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                        Your gift of travel is ready
+                      </h4>
+                      <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
+                        The full value is now in your account. We’ve also sent a confirmation email;
+                        for your security, only the last four characters of your code appear there,
+                        matching the reference below. You can review your card and balance anytime under{" "}
+                        <span className="font-medium text-foreground">My Cards</span>.
+                      </p>
+                      <div className="mt-8 flex w-full max-w-sm mx-auto justify-center text-left">
+                        <GiftCardVisual
+                          variant={giftCardVariantFromTier(
+                            getGiftCardTierFromAmount(buySuccess.amount)
+                          )}
+                          tier={getGiftCardTierFromAmount(buySuccess.amount)}
+                          cardNumber={buySuccess.code}
+                          cardHolder={
+                            [user?.first_name, user?.last_name]
+                              .filter((x): x is string => Boolean(x && String(x).trim()))
+                              .join(" ")
+                              .trim() || "Member"
+                          }
+                          validFrom={dateIsoToMmYy(new Date().toISOString())}
+                          validThru={dateIsoToMmYy(buySuccess.expiryDate)}
+                          className={giftCardClassName.dashboard}
                         />
-                      </svg>
+                      </div>
+                      <div className="mt-6 rounded-xl border border-accent/30 bg-gradient-to-b from-amber-50/50 to-amber-50/20 px-5 py-4 text-center">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-950/50">
+                          Card reference (masked)
+                        </p>
+                        <p className="mt-2 font-mono text-xl font-bold tracking-[0.12em] text-amber-950 sm:text-2xl">
+                          {maskGiftCardCode(buySuccess.code)}
+                        </p>
+                        <p className="mt-3 text-sm font-semibold text-amber-900/80">
+                          Balance · ₹{Number(buySuccess.balance).toLocaleString("en-IN")}
+                        </p>
+                      </div>
                     </div>
-                    <h4 className="mt-4 font-heading text-xl font-bold text-primary">
-                      Gift Card Created!
-                    </h4>
-                    <p className="mt-2 text-muted-foreground">Your gift card is ready to use.</p>
-                    <div className="mt-5 flex w-full max-w-sm mx-auto justify-center text-left">
-                      <GiftCardVisual
-                        variant={giftCardVariantFromTier(
-                          getGiftCardTierFromAmount(buySuccess.amount)
-                        )}
-                        tier={getGiftCardTierFromAmount(buySuccess.amount)}
-                        cardNumber={buySuccess.code}
-                        cardHolder={
-                          [user?.first_name, user?.last_name]
-                            .filter((x): x is string => Boolean(x && String(x).trim()))
-                            .join(" ")
-                            .trim() || "Member"
-                        }
-                        validFrom={dateIsoToMmYy(new Date().toISOString())}
-                        validThru={dateIsoToMmYy(buySuccess.expiryDate)}
-                        className={giftCardClassName.dashboard}
-                      />
-                    </div>
-                    <div className="mt-4 inline-block border-2 border-accent bg-accent/5 px-6 py-3">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Your Gift Card Code
-                      </p>
-                      <p className="mt-1 font-mono text-2xl font-bold text-primary tracking-wider">
-                        {maskGiftCardCode(buySuccess.code)}
-                      </p>
-                      <p className="mt-1 text-sm text-accent font-semibold">
-                        Balance: ₹{Number(buySuccess.balance).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="mt-6 flex justify-center gap-3">
+                    <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
                       <Button
                         variant="accent"
-                        className="text-primary"
+                        className="min-w-[180px] text-primary"
                         onClick={() => {
                           setBuySuccess(null);
                           setActiveTab("my-cards");
@@ -384,8 +404,12 @@ export default function GiftCardsPage() {
                       >
                         View My Cards
                       </Button>
-                      <Button variant="outline" onClick={() => setBuySuccess(null)}>
-                        Buy Another
+                      <Button
+                        variant="outline"
+                        className="min-w-[180px] border-foreground/15"
+                        onClick={() => setBuySuccess(null)}
+                      >
+                        Buy another
                       </Button>
                     </div>
                   </motion.div>

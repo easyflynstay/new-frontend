@@ -12,9 +12,10 @@ export function isValidEmail(s: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t);
 }
 
-/** Show only last 4 characters of gift card code; rest hidden forever in UI. */
+/** Show only last 4 characters; mask the rest (aligned with backend email masking). */
 export function maskGiftCardCode(code: string | undefined | null): string {
   if (!code || typeof code !== "string") return "••••";
-  if (code.length <= 4) return "••••";
-  return "••••••••" + code.slice(-4);
+  const t = code.trim();
+  if (t.length <= 4) return "•".repeat(4);
+  return "•".repeat(t.length - 4) + t.slice(-4);
 }
