@@ -29,6 +29,7 @@ export default function SignUpPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,9 +42,14 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      setError("Enter a valid phone number (10–15 digits).");
+      return;
+    }
     setLoading(true);
     try {
-      await signUp({ firstName, lastName, email, password });
+      await signUp({ firstName, lastName, email, phone: phone.trim(), password });
       router.push("/dashboard");
     } catch (err: unknown) {
       const msg =
@@ -129,6 +135,22 @@ export default function SignUpPage() {
                       placeholder="you@example.com"
                       className={authInputClassName}
                       autoComplete="email"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="signup-phone" className={authLabelClassName}>
+                      Phone
+                    </Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      inputMode="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+91 98765 43210"
+                      className={authInputClassName}
+                      autoComplete="tel"
                       required
                     />
                   </div>

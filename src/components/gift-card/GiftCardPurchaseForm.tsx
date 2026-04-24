@@ -14,6 +14,7 @@ import {
   getGiftCardPayableInr,
   getGiftCardTierFromAmount,
   getGiftCardValidityMonths,
+  giftCardPreviewValidity,
   giftCardVariantFromTier,
   isGiftCardPurchaseInRange,
   type GiftCardTier,
@@ -60,6 +61,14 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
       .trim();
     return name || "Member";
   }, [user]);
+
+  /** First day of current month: tier previews show Prime 12mo / Signature 24mo / Elite 36mo from that issue date. */
+  const tierPreviewIssue = useMemo(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
   const purchaseInRange = isGiftCardPurchaseInRange(face);
   const activeTier = purchaseInRange ? getGiftCardTierFromAmount(face) : null;
@@ -174,6 +183,7 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-3 lg:gap-4">
           {TIER_ORDER.map((tier) => {
             const demo = GIFT_CARD_DEMO[tier];
+            const { validFrom, validThru } = giftCardPreviewValidity(tierPreviewIssue, tier);
             const vari = giftCardVariantFromTier(tier);
             const isActive = activeTier === tier;
             const isDim = face > 0 && (!purchaseInRange || !isActive);
@@ -190,8 +200,8 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
                   tier={tier}
                   cardNumber={demo.cardNumber}
                   cardHolder={cardHolderName}
-                  validFrom={demo.validFrom}
-                  validThru={demo.validThru}
+                  validFrom={validFrom}
+                  validThru={validThru}
                   className={cn(
                     "w-full max-w-full",
                     isActive && purchaseInRange && "ring-2 ring-accent ring-offset-2"
@@ -400,9 +410,9 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
             </>
           )}
         </Button>
-        <p className="mt-3 text-center text-[11px] text-muted-foreground">
+        {/* <p className="mt-3 text-center text-[11px] text-muted-foreground">
           Secured by Razorpay. Supports UPI, Cards, Net Banking & Wallets.
-        </p>
+        </p> */}
       </div>
     </form>
   );

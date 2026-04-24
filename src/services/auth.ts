@@ -4,6 +4,7 @@ export interface SignUpPayload {
   firstName: string;
   lastName: string;
   email: string;
+  phone: string;
   password: string;
 }
 
@@ -15,6 +16,7 @@ export interface SignUpResponse {
   email: string;
   first_name: string;
   last_name: string;
+  phone?: string;
   has_payment_pin?: boolean;
 }
 
@@ -30,6 +32,7 @@ export interface LoginResponse {
   email: string;
   first_name: string;
   last_name: string;
+  phone?: string;
   has_payment_pin?: boolean;
 }
 
@@ -38,6 +41,7 @@ export interface UserProfile {
   email: string;
   first_name: string;
   last_name: string;
+  phone: string;
   created_at: string;
   has_payment_pin?: boolean;
 }

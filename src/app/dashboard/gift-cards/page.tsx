@@ -237,9 +237,9 @@ export default function GiftCardsPage() {
                             ₹{Number(card.balance).toLocaleString()} of ₹
                             {Number(card.initial_amount).toLocaleString()}
                           </p>
-                          <p className="text-[10px] text-muted-foreground">
+                          {/* <p className="text-[10px] text-muted-foreground">
                             Exp: {new Date(card.expiry_date).toLocaleDateString()}
-                          </p>
+                          </p> */}
                         </div>
                         {card.status === "active" && (
                           <div className="mt-3 flex gap-2">
@@ -317,7 +317,7 @@ export default function GiftCardsPage() {
               <div className="bg-primary px-6 py-4">
                 <h3 className="font-heading text-lg font-semibold text-white">Purchase a Gift Card</h3>
                 <p className="text-sm text-white/60 mt-0.5">
-                  Processed securely via Razorpay. Card is bound to your account.
+                  Gift card purchase is processed securely. Card is bound to your account.
                 </p>
               </div>
             )}
@@ -358,9 +358,7 @@ export default function GiftCardsPage() {
                         Your gift of travel is ready
                       </h4>
                       <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
-                        The full value is now in your account. We’ve also sent a confirmation email;
-                        for your security, only the last four characters of your code appear there,
-                        matching the reference below. You can review your card and balance anytime under{" "}
+                        Thankyou for purchasing the gift card. Your card is now in your account. You can view your card and balance anytime under{" "}
                         <span className="font-medium text-foreground">My Cards</span>.
                       </p>
                       <div className="mt-8 flex w-full max-w-sm mx-auto justify-center text-left">

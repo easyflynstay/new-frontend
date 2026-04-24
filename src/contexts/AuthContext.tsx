@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: res.email,
       first_name: res.first_name,
       last_name: res.last_name,
+      phone: res.phone ?? "",
       created_at: "",
       has_payment_pin: res.has_payment_pin ?? false,
     };
@@ -82,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: res.email,
       first_name: res.first_name,
       last_name: res.last_name,
+      phone: res.phone ?? "",
       created_at: "",
       has_payment_pin: res.has_payment_pin ?? false,
     };

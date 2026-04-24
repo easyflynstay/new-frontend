@@ -43,6 +43,34 @@ export function getGiftCardValidityMonths(tier: GiftCardTier): number {
   return 12;
 }
 
+/** MM/YY for gift card face (same convention as `dateIsoToMmYy` elsewhere). */
+export function dateToGiftCardMmYy(d: Date): string {
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${mm}/${yy}`;
+}
+
+/**
+ * Expiry = issue month + tier validity (Prime 12, Signature 24, Elite 36 months).
+ * Used for marketing demos and purchase tier previews.
+ */
+export function giftCardExpiryDateForTier(issue: Date, tier: GiftCardTier): Date {
+  const months = getGiftCardValidityMonths(tier);
+  const t = new Date(issue.getTime());
+  t.setMonth(t.getMonth() + months);
+  return t;
+}
+
+export function giftCardPreviewValidity(
+  issue: Date,
+  tier: GiftCardTier
+): { validFrom: string; validThru: string } {
+  return {
+    validFrom: dateToGiftCardMmYy(issue),
+    validThru: dateToGiftCardMmYy(giftCardExpiryDateForTier(issue, tier)),
+  };
+}
+
 /**
  * What the customer pays (₹) for Razorpay after tier discount. Rounded to 2 decimals.
  */
@@ -53,6 +81,9 @@ export function getGiftCardPayableInr(faceValueInr: number): number {
   return Math.round(faceValueInr * (1 - d) * 100) / 100;
 }
 
+/** Fixed issue month for static marketing assets (last three calendar months align with tier lengths). */
+const GIFT_CARD_DEMO_ISSUE = new Date(2025, 2, 1); // 1 Mar 2025 → validFrom 03/25; thru 03/26 / 03/27 / 03/28
+
 /** Demo / marketing defaults per tier (carousel, hero) */
 export const GIFT_CARD_DEMO: Record<
   GiftCardTier,
@@ -61,20 +92,17 @@ export const GIFT_CARD_DEMO: Record<
   Prime: {
     cardholderName: "Rahul Sharma",
     cardNumber: "XXXX XXXX XXXX 1234",
-    validFrom: "03/26",
-    validThru: "03/29",
+    ...giftCardPreviewValidity(GIFT_CARD_DEMO_ISSUE, "Prime"),
   },
   Signature: {
     cardholderName: "Priya Mehta",
     cardNumber: "XXXX XXXX XXXX 5678",
-    validFrom: "03/26",
-    validThru: "03/29",
+    ...giftCardPreviewValidity(GIFT_CARD_DEMO_ISSUE, "Signature"),
   },
   Elite: {
     cardholderName: "Arjun Kapoor",
     cardNumber: "XXXX XXXX XXXX 9012",
-    validFrom: "03/26",
-    validThru: "03/29",
+    ...giftCardPreviewValidity(GIFT_CARD_DEMO_ISSUE, "Elite"),
   },
 };
 
