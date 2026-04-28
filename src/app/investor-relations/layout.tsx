@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Investor Relations | Easyflynstay",
+  title: "Investor Relations | EASYFLYNSTAY",
   description:
-    "Company overview, strategy, and investor resources for Easyflynstay — premium business and first class travel, headquartered in Bengaluru, India.",
+    "Company overview, strategy, and investor resources for EASYFLYNSTAY — premium business and first class travel, headquartered in Bengaluru, India.",
   openGraph: {
-    title: "Investor Relations | Easyflynstay",
+    title: "Investor Relations | EASYFLYNSTAY",
     description:
-      "Learn about Easyflynstay’s mission, market opportunity, and how to reach our team for investor and partnership inquiries.",
+      "Learn about EASYFLYNSTAY’s mission, market opportunity, and how to reach our team for investor and partnership inquiries.",
   },
 };
 

@@ -128,7 +128,7 @@ export default function GiftCardsPage() {
                 <h1 className="font-heading text-4xl font-bold md:text-5xl leading-tight">
                   Ease your struggles in<br />choosing the <span className="text-accent">perfect gift!</span>
                 </h1>
-                <p className="mt-4 text-lg text-white/70 max-w-md">Three exclusive tiers crafted for every occasion. Give the gift of luxury travel with Easyflynstay.</p>
+                <p className="mt-4 text-lg text-white/70 max-w-md">Three exclusive tiers crafted for every occasion. Give the gift of luxury travel with EASYFLYNSTAY.</p>
                 <div className="mt-6 flex gap-3">
                   <Button variant="accent" size="lg" className="text-primary font-semibold" onClick={handlePurchaseClick}>
                     Purchase Gift Card
@@ -295,7 +295,7 @@ export default function GiftCardsPage() {
               {[
                 { step: "01", title: "Choose & Purchase", desc: "Select your preferred tier and complete the purchase securely.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg> },
                 { step: "02", title: "Added to your account", desc: "As soon as payment completes, your card appears under Gift Cards. We email a confirmation; for security, only a masked code appears in the email.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> },
-                { step: "03", title: "Redeem & Fly", desc: "Apply the gift card code at checkout for any Easyflynstay booking.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg> },
+                { step: "03", title: "Redeem & Fly", desc: "Apply the gift card code at checkout for any EASYFLYNSTAY booking.", icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" /></svg> },
               ].map((s) => (
                 <SectionReveal key={s.step}>
                   <div className="text-center">
@@ -320,7 +320,7 @@ export default function GiftCardsPage() {
             </SectionReveal>
             <div className="space-y-4">
               {[
-                { q: "Can I use a gift card for any flight?", a: "Yes, all Easyflynstay gift cards can be redeemed on any flight booking — economy through first class." },
+                { q: "Can I use a gift card for any flight?", a: "Yes, all EASYFLYNSTAY gift cards can be redeemed on any flight booking — economy through first class." },
                 { q: "Do gift cards expire?", a: "Prime cards are valid for 12 months, Elite for 24 months, and Signature for 36 months from the date of purchase." },
                 { q: "Can I combine multiple gift cards?", a: "Absolutely. You can apply multiple gift card codes to a single booking." },
                 { q: "Is there a physical card option?", a: "The Signature tier includes a premium physical card delivered in an exclusive gift box. Prime and Elite are digital-only." },

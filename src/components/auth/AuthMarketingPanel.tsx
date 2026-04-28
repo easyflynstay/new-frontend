@@ -17,7 +17,7 @@ export type AuthMarketingPanelProps = {
 export function AuthMarketingPanel({
   imageSrc,
   imageAlt,
-  eyebrow = "Easyflynstay",
+  eyebrow = "EASYFLYNSTAY",
   title,
   description,
   priority = false,

@@ -41,7 +41,7 @@ export default function AboutPage() {
               animate={{ opacity: 1, y: 0 }}
               className="text-center text-white"
             >
-              <h1 className="font-heading text-4xl font-bold md:text-5xl">About Easyflynstay</h1>
+              <h1 className="font-heading text-4xl font-bold md:text-5xl">About EASYFLYNSTAY</h1>
               <p className="mt-3 text-lg text-white/80">Your trusted partner in premium air travel since 2014.</p>
             </motion.div>
           </div>
@@ -54,7 +54,7 @@ export default function AboutPage() {
               <SectionReveal>
                 <h2 className="font-heading text-3xl font-semibold text-foreground">Our Mission</h2>
                 <p className="mt-4 text-muted-foreground leading-relaxed">
-                  At Easyflynstay, we believe that premium travel should be accessible to everyone. Our team of expert travel
+                  At EASYFLYNSTAY, we believe that premium travel should be accessible to everyone. Our team of expert travel
                   consultants leverages years of industry relationships to secure the best unpublished fares on business and
                   first class flights worldwide.
                 </p>

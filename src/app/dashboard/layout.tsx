@@ -58,7 +58,7 @@ export default function DashboardLayout({
               <span className="font-heading text-sm font-bold text-accent">E</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-heading text-lg font-bold tracking-tight text-primary">Easyflynstay</span>
+              <span className="font-heading text-lg font-bold tracking-tight text-primary">EASYFLYNSTAY</span>
               <span className="text-[9px] uppercase tracking-widest text-muted-foreground">Dashboard</span>
             </div>
           </Link>

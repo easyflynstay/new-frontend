@@ -19,7 +19,7 @@ const navAnchors = [
 ];
 
 const snapshotRows = [
-  { label: "Legal name", value: "Easyflynstay (brand)" },
+  { label: "Legal name", value: "EASYFLYNSTAY (brand)" },
   { label: "Headquarters", value: "Bengaluru, Karnataka, India" },
   { label: "Founded", value: "2014 (5+ years scaled operations)" },
   { label: "Sector", value: "Premium travel & concierge flight retail" },
@@ -69,7 +69,7 @@ export default function InvestorRelationsPage() {
               transition={{ duration: 0.45 }}
               className="max-w-3xl"
             >
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-accent">Easyflynstay</p>
+              <p className="text-sm font-medium uppercase tracking-[0.2em] text-accent">EASYFLYNSTAY</p>
               <h1 className="mt-3 font-heading text-3xl font-bold leading-tight md:text-4xl lg:text-5xl">
                 Investor relations
               </h1>
@@ -102,7 +102,7 @@ export default function InvestorRelationsPage() {
             <SectionReveal>
               <h2 className="font-heading text-2xl font-semibold text-foreground md:text-3xl">Company overview</h2>
               <p className="mt-4 max-w-3xl text-muted-foreground leading-relaxed">
-                Easyflynstay is a premium travel retailer specializing in business and first class air travel. We combine
+                EASYFLYNSTAY is a premium travel retailer specializing in business and first class air travel. We combine
                 proprietary fare sourcing, long-standing airline and consolidator relationships, and high-touch service to
                 deliver value and reliability for discerning travelers and corporate buyers.
               </p>

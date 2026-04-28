@@ -16,8 +16,8 @@ export function Footer() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="flex items-center gap-3">
-              <Image src="/logo.svg" alt="Easyflynstay" width={40} height={40} className="h-10 w-10 rounded-none" />
-              <h3 className="font-heading text-lg font-semibold">Easyflynstay</h3>
+              <Image src="/logo.svg" alt="EASYFLYNSTAY" width={40} height={40} className="h-10 w-10 rounded-none" />
+              <h3 className="font-heading text-lg font-semibold">EASYFLYNSTAY</h3>
             </div>
             <p className="mt-3 text-sm text-white/80">Premium business and first class flight booking. Fly easy, stay easy.</p>
           </div>
@@ -59,7 +59,7 @@ export function Footer() {
             <Link href="/investor-relations" className="hover:text-accent transition-colors">Investor Relations</Link>
           </div>
           <p className="mt-4 text-center text-sm text-white/60">
-            &copy; {new Date().getFullYear()} Easyflynstay. All rights reserved.
+            &copy; {new Date().getFullYear()} EASYFLYNSTAY. All rights reserved.
           </p>
         </div>
       </div>

@@ -529,7 +529,7 @@ export default function GiftCardsPage() {
                   <div>
                     <Label className="text-sm font-semibold">Recipient&apos;s Email</Label>
                     <p className="text-xs text-muted-foreground mt-0.5 mb-1.5">
-                      Must be a registered Easyflynstay user.
+                      Must be a registered EASYFLYNSTAY user.
                     </p>
                     <Input
                       type="email"

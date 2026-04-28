@@ -68,7 +68,7 @@ export default function SignUpPage() {
         <AuthMarketingPanel
           imageSrc="https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=800&h=1000&fit=crop"
           imageAlt="Travel adventure"
-          title="Join Easyflynstay"
+          title="Join EASYFLYNSTAY"
           description="Unlock exclusive fares, manage every booking, and earn more on every trip."
         />
 

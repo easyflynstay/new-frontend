@@ -170,7 +170,7 @@ function TrackBookingContent() {
                         <span className="font-heading text-lg font-bold text-primary">E</span>
                       </div>
                       <div>
-                        <h3 className="font-heading text-lg font-semibold text-white">Easyflynstay</h3>
+                        <h3 className="font-heading text-lg font-semibold text-white">EASYFLYNSTAY</h3>
                         <p className="text-xs text-white/60">Electronic Ticket</p>
                       </div>
                     </div>

@@ -50,7 +50,7 @@ export function Navbar() {
         <div className="border-b border-border bg-white px-4 py-3">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-3">
-              <Image src="/logo-full.svg" alt="Easyflynstay" width={320} height={80} className="h-16 w-auto sm:h-20 sm:w-auto" priority />
+              <Image src="/logo-full.svg" alt="EASYFLYNSTAY" width={320} height={80} className="h-16 w-auto sm:h-20 sm:w-auto" priority />
             </Link>
             <div className="flex items-center gap-4 text-sm text-charcoal">
               <span className="hidden sm:inline font-medium">PREMIUM TRAVEL EXPERIENCE</span>

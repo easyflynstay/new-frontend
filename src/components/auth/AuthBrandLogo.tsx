@@ -21,7 +21,7 @@ export function AuthBrandLogo({ variant = "hero", className }: AuthBrandLogoProp
     >
       <Image
         src="/logo.svg"
-        alt="Easyflynstay"
+        alt="EASYFLYNSTAY"
         width={160}
         height={160}
         className={cn(

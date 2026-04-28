@@ -17,7 +17,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "EasyFlyNStay | Premium Flight Booking & Travel",
-  description: "Book flights, hotels, and travel packages with Easyflynstay. Premium business and first class travel made easy.",
+  description: "Book flights, hotels, and travel packages with EASYFLYNSTAY. Premium business and first class travel made easy.",
   icons: [{ rel: "icon", url: "/logo.svg", type: "image/svg+xml" }],
 };
 

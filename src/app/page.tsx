@@ -63,7 +63,7 @@ const whyChoose = [
 const testimonials = [
   {
     name: "Rajesh Sharma",
-    text: "Incredible service! Saved over ₹2,55,000 on my business class flight to London. The team at Easyflynstay went above and beyond with every detail.",
+    text: "Incredible service! Saved over ₹2,55,000 on my business class flight to London. The team at EASYFLYNSTAY went above and beyond with every detail.",
     from: "Mumbai, India",
     image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
@@ -84,7 +84,7 @@ const testimonials = [
   },
   {
     name: "James O'Connor",
-    text: "Easyflynstay found me a first class deal to Tokyo that was 60% cheaper than what I found on my own. Absolutely phenomenal.",
+    text: "EASYFLYNSTAY found me a first class deal to Tokyo that was 60% cheaper than what I found on my own. Absolutely phenomenal.",
     from: "London, UK",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
@@ -98,7 +98,7 @@ const testimonials = [
   },
   {
     name: "David Chen",
-    text: "Been using Easyflynstay for two years now. Every single booking has been flawless. My go-to for all business travel.",
+    text: "Been using EASYFLYNSTAY for two years now. Every single booking has been flawless. My go-to for all business travel.",
     from: "Singapore",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
@@ -193,7 +193,7 @@ export default function HomePage() {
               <span className="text-accent">For Less</span>
             </h1>
             <p className="mt-4 text-lg text-white/90 max-w-2xl mx-auto">
-              Expert first & business class travel management by Easyflynstay.
+              Expert first & business class travel management by EASYFLYNSTAY.
               Save 30–70% on premium cabin fares worldwide.
             </p>
             <motion.div
@@ -273,7 +273,7 @@ export default function HomePage() {
           <div className="hero-overlay absolute inset-0" />
           <SectionReveal className="relative mx-auto max-w-7xl px-4 text-center text-white">
             <h2 className="font-heading text-3xl font-semibold">Explore the World in Luxury</h2>
-            <p className="mt-3 text-white/80 max-w-2xl mx-auto">From the streets of Paris to the beaches of Maldives, Easyflynstay connects you to 500+ destinations in premium comfort.</p>
+            <p className="mt-3 text-white/80 max-w-2xl mx-auto">From the streets of Paris to the beaches of Maldives, EASYFLYNSTAY connects you to 500+ destinations in premium comfort.</p>
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               {[
                 { dest: "Dubai", img: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&h=450&fit=crop&q=85", tag: `From ${formatUsdAsInr(899)}` },
@@ -301,7 +301,7 @@ export default function HomePage() {
         <section className="border-t border-border bg-muted/30 py-16">
           <div className="mx-auto max-w-7xl px-4">
             <SectionReveal>
-              <h2 className="font-heading text-3xl font-semibold text-foreground text-center">Why Choose Easyflynstay</h2>
+              <h2 className="font-heading text-3xl font-semibold text-foreground text-center">Why Choose EASYFLYNSTAY</h2>
               <p className="mt-2 text-muted-foreground text-center">We&apos;re not just a booking platform — we&apos;re your travel partner.</p>
             </SectionReveal>
             <motion.div
@@ -340,7 +340,7 @@ export default function HomePage() {
           <div className="relative mx-auto max-w-7xl px-4">
             <SectionReveal>
               <h2 className="font-heading text-3xl font-semibold text-foreground text-center">What Travelers Say</h2>
-              <p className="mt-2 text-center text-muted-foreground">Over 50,000 happy travelers trust Easyflynstay worldwide.</p>
+              <p className="mt-2 text-center text-muted-foreground">Over 50,000 happy travelers trust EASYFLYNSTAY worldwide.</p>
             </SectionReveal>
             <motion.div
               variants={containerVariants}
@@ -433,7 +433,7 @@ export default function HomePage() {
             className="relative mx-auto max-w-3xl px-4 py-20 text-center text-white"
           >
             <h2 className="font-heading text-3xl font-semibold md:text-4xl">Ready to Fly?</h2>
-            <p className="mt-4 text-white/90 text-lg">Get the best fares on business and first class with Easyflynstay. Track your booking anytime.</p>
+            <p className="mt-4 text-white/90 text-lg">Get the best fares on business and first class with EASYFLYNSTAY. Track your booking anytime.</p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Link href="/">
                 <Button className="h-12 border-2 border-accent bg-accent px-8 text-base font-semibold text-primary shadow-lg hover:bg-accent/90">Search Flights</Button>

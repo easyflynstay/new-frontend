@@ -59,7 +59,7 @@ const posts = [
   },
   {
     title: "Gift Cards: The Perfect Present for Travel Lovers",
-    excerpt: "Why an Easyflynstay gift card is the ideal gift for birthdays, weddings, and holidays. Three premium tiers explained.",
+    excerpt: "Why an EASYFLYNSTAY gift card is the ideal gift for birthdays, weddings, and holidays. Three premium tiers explained.",
     image: "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=600&h=400&fit=crop",
     date: "Feb 5, 2026",
     category: "Promotions",
