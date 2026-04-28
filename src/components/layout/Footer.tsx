@@ -56,6 +56,7 @@ export function Footer() {
             <Link href="/terms" className="hover:text-accent transition-colors">Terms &amp; Conditions</Link>
             <Link href="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link>
             <Link href="/refund-cancellation" className="hover:text-accent transition-colors">Refund &amp; Cancellation Policy</Link>
+            <Link href="/investor-relations" className="hover:text-accent transition-colors">Investor Relations</Link>
           </div>
           <p className="mt-4 text-center text-sm text-white/60">
             &copy; {new Date().getFullYear()} Easyflynstay. All rights reserved.
