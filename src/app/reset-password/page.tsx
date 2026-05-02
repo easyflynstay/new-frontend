@@ -8,11 +8,11 @@ import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { PasswordFieldWithStrength } from "@/components/auth/PasswordFieldWithStrength";
 import { resetPassword } from "@/services/auth";
+import { isPasswordStrong } from "@/lib/password-policy";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -41,8 +41,8 @@ function ResetPasswordForm() {
       setError("Passwords do not match.");
       return;
     }
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (!isPasswordStrong(newPassword)) {
+      setError("Your password must satisfy every requirement shown under the new password field.");
       return;
     }
     setLoading(true);
@@ -93,32 +93,31 @@ function ResetPasswordForm() {
         </div>
       )}
       <div>
-        <Label htmlFor="new-password">New password</Label>
-        <Input
+        <PasswordFieldWithStrength
           id="new-password"
-          type="password"
+          label="New password"
           value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="At least 6 characters"
-          className="mt-1"
-          minLength={6}
-          required
+          onChange={setNewPassword}
+          autoComplete="new-password"
+          showStrengthHints
         />
       </div>
       <div>
-        <Label htmlFor="confirm-password">Confirm password</Label>
-        <Input
+        <PasswordFieldWithStrength
           id="confirm-password"
-          type="password"
+          label="Confirm password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Repeat new password"
-          className="mt-1"
-          minLength={6}
-          required
+          onChange={setConfirmPassword}
+          autoComplete="new-password"
+          showStrengthHints={false}
         />
       </div>
-      <Button type="submit" variant="accent" className="w-full text-primary" disabled={loading}>
+      <Button
+        type="submit"
+        variant="accent"
+        className="w-full text-primary"
+        disabled={loading || !isPasswordStrong(newPassword) || newPassword !== confirmPassword}
+      >
         {loading ? "Resetting…" : "Reset password"}
       </Button>
       <p className="text-center text-sm text-muted-foreground">

@@ -13,6 +13,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthMarketingPanel } from "@/components/auth/AuthMarketingPanel";
 import { AuthBrandLogo } from "@/components/auth/AuthBrandLogo";
+import { PasswordFieldWithStrength } from "@/components/auth/PasswordFieldWithStrength";
+import { filterDigitsOnly } from "@/lib/input-filters";
+import { isPasswordStrong } from "@/lib/password-policy";
 import {
   authCardClassName,
   authFormColumnClassName,
@@ -22,6 +25,8 @@ import {
   authPrimaryButtonClassName,
   authErrorAlertClassName,
 } from "@/lib/auth-page-ui";
+
+const SIGNUP_PHONE_DIGIT_MAX = 15;
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -45,6 +50,10 @@ export default function SignUpPage() {
     const phoneDigits = phone.replace(/\D/g, "");
     if (phoneDigits.length < 10 || phoneDigits.length > 15) {
       setError("Enter a valid phone number (10–15 digits).");
+      return;
+    }
+    if (!isPasswordStrong(password)) {
+      setError("Choose a stronger password that meets every requirement below.");
       return;
     }
     setLoading(true);
@@ -77,7 +86,7 @@ export default function SignUpPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-md"
+            className="w-full max-w-lg"
           >
             <Card className={authCardClassName}>
               <CardHeader className="space-y-1 pb-2 text-center">
@@ -145,30 +154,22 @@ export default function SignUpPage() {
                     <Input
                       id="signup-phone"
                       type="tel"
-                      inputMode="tel"
+                      inputMode="numeric"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+91 98765 43210"
-                      className={authInputClassName}
+                      onChange={(e) => setPhone(filterDigitsOnly(e.target.value, SIGNUP_PHONE_DIGIT_MAX))}
                       autoComplete="tel"
                       required
                     />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="signup-password" className={authLabelClassName}>
-                      Password
-                    </Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className={authInputClassName}
-                      autoComplete="new-password"
-                      required
-                      minLength={6}
-                    />
-                  </div>
+                  <PasswordFieldWithStrength
+                    id="signup-password"
+                    label="Password"
+                    value={password}
+                    onChange={setPassword}
+                    autoComplete="new-password"
+                    labelClassName={authLabelClassName}
+                    inputClassName={authInputClassName}
+                  />
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     By creating an account, you agree to our{" "}
                     <Link href="/terms" className="font-medium text-accent hover:underline">
@@ -180,7 +181,12 @@ export default function SignUpPage() {
                     </Link>
                     .
                   </p>
-                  <Button type="submit" variant="accent" className={authPrimaryButtonClassName} disabled={loading}>
+                  <Button
+                    type="submit"
+                    variant="accent"
+                    className={authPrimaryButtonClassName}
+                    disabled={loading || !isPasswordStrong(password)}
+                  >
                     {loading ? "Creating account..." : "Create account"}
                   </Button>
                   <p className="border-t border-border/80 pt-6 text-center text-sm text-muted-foreground">

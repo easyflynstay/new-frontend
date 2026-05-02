@@ -11,30 +11,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SectionReveal } from "@/components/ui/section-reveal";
+import { DISPLAY_PHONE, OFFICES, SUPPORT_EMAIL, TEL_HREF } from "@/lib/contact-info";
+import { filterDigitsOnly } from "@/lib/input-filters";
+
+const CONTACT_PHONE_DIGIT_MAX = 15;
 
 const contactInfo = [
   {
     title: "Phone",
-    value: "+91 7090005700",
+    value: DISPLAY_PHONE,
     desc: "Mon - Sun, 24/7",
+    href: TEL_HREF,
     icon: (
       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
     ),
   },
   {
     title: "Email",
-    value: "support@easyflynstay.com",
+    value: SUPPORT_EMAIL,
     desc: "We reply within 2 hours",
+    href: `mailto:${SUPPORT_EMAIL}`,
     icon: (
       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-    ),
-  },
-  {
-    title: "Office",
-    value: "Ground Floor, Plot No: 128-P2, Near Ginger Hotel, EPIP Zone, Whitefield, Bengaluru, Karnataka 560066",
-    desc: "Visit us by appointment",
-    icon: (
-      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
     ),
   },
 ];
@@ -127,11 +125,39 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-heading font-semibold">{c.title}</h3>
-                      <p className="text-foreground">{c.value}</p>
+                      <p className="text-foreground">
+                        {"href" in c && c.href ? (
+                          <a href={c.href} className="text-accent underline-offset-4 hover:underline">
+                            {c.value}
+                          </a>
+                        ) : (
+                          c.value
+                        )}
+                      </p>
                       <p className="text-xs text-muted-foreground">{c.desc}</p>
                     </div>
                   </motion.div>
                 ))}
+                <motion.div whileHover={{ x: 5 }} className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-accent/10 text-accent">
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-semibold">Offices</h3>
+                    <ul className="mt-1 list-decimal space-y-2 pl-5 text-sm text-foreground">
+                      {OFFICES.map((o) => (
+                        <li key={o.title}>
+                          <span className="font-medium">{o.title}: </span>
+                          {o.lines}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-xs text-muted-foreground mt-1">Visit us by appointment</p>
+                  </div>
+                </motion.div>
               </div>
               <div className="mt-8 relative h-48 overflow-hidden">
                 <Image
@@ -166,13 +192,12 @@ export default function ContactPage() {
                       <div><Label htmlFor="contact-last">Last name</Label><Input id="contact-last" className="mt-1" value={lastName} onChange={(e) => setLastName(e.target.value)} /></div>
                     </div>
                     <div><Label htmlFor="contact-email">Email</Label><Input id="contact-email" type="email" className="mt-1" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
-                    <div><Label htmlFor="contact-phone">Phone</Label><Input id="contact-phone" type="tel" className="mt-1" value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
+                    <div><Label htmlFor="contact-phone">Phone</Label><Input id="contact-phone" type="tel" inputMode="numeric" className="mt-1" value={phone} onChange={(e) => setPhone(filterDigitsOnly(e.target.value, CONTACT_PHONE_DIGIT_MAX))} /></div>
                     <div>
                       <Label htmlFor="contact-message">Message</Label>
                       <textarea
                         id="contact-message"
                         className="mt-1 w-full border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[120px] rounded-md"
-                        placeholder="Tell us about your travel plans..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         required

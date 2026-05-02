@@ -12,6 +12,7 @@ import { adminSendTrackingEmail, adminUpdatePnr, adminUploadTicket } from "@/ser
 import { adminLogin, adminLogout, adminMe } from "@/services/admin";
 import { adminGenerateCoupons } from "@/services/coupons";
 import { cn } from "@/lib/utils";
+import { filterDecimalDigits, filterDigitsOnly } from "@/lib/input-filters";
 
 function AlertBanner({ type, children }: { type: "success" | "error"; children: ReactNode }) {
   return (
@@ -433,11 +434,19 @@ export function AdminPanel() {
                   </Label>
                   <Input
                     id="couponCount"
-                    type="number"
-                    min={1}
-                    max={250}
-                    value={couponCount}
-                    onChange={(e) => setCouponCount(parseInt(e.target.value, 10) || 1)}
+                    type="text"
+                    inputMode="numeric"
+                    className="max-w-[120px]"
+                    value={couponCount === 0 ? "" : String(couponCount)}
+                    onChange={(e) => {
+                      const d = filterDigitsOnly(e.target.value, 3);
+                      if (d === "") {
+                        setCouponCount(1);
+                        return;
+                      }
+                      const n = Math.min(250, Math.max(1, parseInt(d, 10)));
+                      setCouponCount(Number.isFinite(n) ? n : 1);
+                    }}
                     required
                   />
                 </div>
@@ -448,11 +457,10 @@ export function AdminPanel() {
                     </Label>
                     <Input
                       id="couponDiscount"
-                      type="number"
-                      step="any"
+                      type="text"
+                      inputMode="decimal"
                       value={couponDiscountPercent}
-                      onChange={(e) => setCouponDiscountPercent(e.target.value)}
-                      placeholder="e.g. 19.99"
+                      onChange={(e) => setCouponDiscountPercent(filterDecimalDigits(e.target.value, 6))}
                       required
                     />
                   </div>
@@ -463,11 +471,10 @@ export function AdminPanel() {
                     </Label>
                     <Input
                       id="couponDiscountInr"
-                      type="number"
-                      step="any"
+                      type="text"
+                      inputMode="numeric"
                       value={couponDiscountInr}
-                      onChange={(e) => setCouponDiscountInr(e.target.value)}
-                      placeholder="e.g. 500"
+                      onChange={(e) => setCouponDiscountInr(filterDigitsOnly(e.target.value, 12))}
                       required
                     />
                   </div>
@@ -518,7 +525,6 @@ export function AdminPanel() {
                     id="bookingId"
                     value={bookingId}
                     onChange={(e) => setBookingId(e.target.value)}
-                    placeholder="BK-20240315-00001"
                     className="font-mono text-sm"
                     required
                   />
@@ -531,7 +537,6 @@ export function AdminPanel() {
                     id="pnr"
                     value={pnr}
                     onChange={(e) => setPnr(e.target.value)}
-                    placeholder="ABC123"
                     className="font-mono text-sm"
                     required
                   />
@@ -615,7 +620,6 @@ export function AdminPanel() {
                   id="notifyBookingId"
                   value={notifyBookingId}
                   onChange={(e) => setNotifyBookingId(e.target.value)}
-                  placeholder="BK-20240315-00001"
                   className="font-mono text-sm"
                   required
                 />

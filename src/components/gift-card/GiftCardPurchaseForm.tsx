@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,9 @@ import {
 import { buyGiftCard, verifyGiftCardPayment, type GiftCardEliteShipping } from "@/services/giftcards";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
 import { GiftCardVisual } from "@/components/gift-card";
+import { filterDigitsOnly } from "@/lib/input-filters";
+
+const GIFT_CARD_AMOUNT_MAX_DIGITS = 12;
 
 const TIER_ORDER: GiftCardTier[] = ["Prime", "Signature", "Elite"];
 
@@ -42,15 +45,105 @@ const emptyShip = (): GiftCardEliteShipping => ({
   pincode: "",
 });
 
+type ShipFieldKey = keyof GiftCardEliteShipping;
+
+type ShipErrors = Partial<Record<ShipFieldKey, string>>;
+
+function validateEliteShipping(s: GiftCardEliteShipping): ShipErrors {
+  const errors: ShipErrors = {};
+  const apt = s.apartment.trim();
+  const street = s.street.trim();
+  const city = s.city.trim();
+  const district = s.district.trim();
+  const pinDigits = s.pincode.replace(/\D/g, "");
+
+  if (!apt) {
+    errors.apartment = "Enter the apartment, house, or villa name.";
+  } else if (apt.length < 2) {
+    errors.apartment = "Use at least 2 characters.";
+  }
+  if (!street) {
+    errors.street = "Enter the street address (road, area, landmarks).";
+  } else if (street.length < 3) {
+    errors.street = "Use at least 3 characters.";
+  }
+  if (!city) {
+    errors.city = "Enter the city or town.";
+  } else if (city.length < 2) {
+    errors.city = "Use at least 2 characters.";
+  }
+  if (!district) {
+    errors.district = "Enter the district or taluk.";
+  } else if (district.length < 2) {
+    errors.district = "Use at least 2 characters.";
+  }
+  if (pinDigits.length !== 6) {
+    errors.pincode = "Enter a valid 6-digit PIN code.";
+  }
+  return errors;
+}
+
+/** Shared field chrome: hint + error + a11y ids */
+function ShipField({
+  id,
+  label,
+  helper,
+  error,
+  children,
+  className,
+}: {
+  id: string;
+  label: string;
+  helper: string;
+  error?: string;
+  children: (a11y: { invalid: boolean; describedBy: string }) => ReactNode;
+  className?: string;
+}) {
+  const hintId = `${id}-hint`;
+  const errId = `${id}-err`;
+  const invalid = Boolean(error);
+  const describedBy = invalid ? `${hintId} ${errId}` : hintId;
+  return (
+    <div className={className}>
+      <Label htmlFor={id} className="text-xs font-medium text-foreground">
+        {label}
+      </Label>
+      <p id={hintId} className="mt-1 text-[11px] leading-snug text-muted-foreground">
+        {helper}
+      </p>
+      {children({ invalid, describedBy })}
+      {error ? (
+        <p id={errId} role="alert" className="mt-1 text-[11px] leading-snug text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
   const [buyAmount, setBuyAmount] = useState("");
   const [buyError, setBuyError] = useState("");
   const [buyLoading, setBuyLoading] = useState(false);
   const [ship, setShip] = useState<GiftCardEliteShipping>(emptyShip);
+  const [shipErrors, setShipErrors] = useState<ShipErrors>({});
+
+  const patchShip = useCallback((key: ShipFieldKey, value: string) => {
+    setShip((prev) => ({ ...prev, [key]: value }));
+    setShipErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+    setBuyError((prev) => (prev === "Check the shipping fields highlighted below." ? "" : prev));
+  }, []);
 
   const face = useMemo(() => {
-    const n = parseFloat(buyAmount.replace(/,/g, "").trim());
-    return Number.isFinite(n) && n >= 1 ? Math.round(n * 100) / 100 : 0;
+    const d = filterDigitsOnly(buyAmount, GIFT_CARD_AMOUNT_MAX_DIGITS);
+    if (!d) return 0;
+    const n = parseInt(d, 10);
+    return Number.isFinite(n) && n >= 1 ? n : 0;
   }, [buyAmount]);
 
   const cardHolderName = useMemo(() => {
@@ -74,6 +167,10 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
   const activeTier = purchaseInRange ? getGiftCardTierFromAmount(face) : null;
 
   const showEliteForm = purchaseInRange && activeTier === "Elite";
+
+  useEffect(() => {
+    if (!showEliteForm) setShipErrors({});
+  }, [showEliteForm]);
 
   const buildShippingPayload = (): GiftCardEliteShipping | undefined => {
     if (!showEliteForm) return undefined;
@@ -99,11 +196,19 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
       return;
     }
     if (showEliteForm) {
-      const p = buildShippingPayload()!;
-      if (!p.apartment || !p.street || !p.city || !p.district || p.pincode.length !== 6) {
-        setBuyError("Please complete all shipping fields with a valid 6-digit PIN code.");
+      const errs = validateEliteShipping(ship);
+      if (Object.keys(errs).length > 0) {
+        setShipErrors(errs);
+        setBuyError("Check the shipping fields highlighted below.");
+        requestAnimationFrame(() => {
+          const firstKey = (["apartment", "street", "city", "district", "pincode"] as const).find(
+            (k) => errs[k]
+          );
+          if (firstKey) document.getElementById(`ship-${firstKey}`)?.focus();
+        });
         return;
       }
+      setShipErrors({});
     }
     setBuyLoading(true);
     setBuyError("");
@@ -137,6 +242,7 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
             });
             setBuyAmount("");
             setShip(emptyShip());
+            setShipErrors({});
           } catch (err: unknown) {
             const detail =
               err && typeof err === "object" && "response" in err
@@ -175,24 +281,26 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
 
       <div>
         <p className="text-sm font-semibold text-foreground">Choose a tier (by gift value)</p>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Use ₹{GIFT_CARD_MIN_PURCHASE_INR.toLocaleString("en-IN")} – ₹
-          {GIFT_CARD_MAX_PURCHASE_INR.toLocaleString("en-IN")}. When the amount is valid, only the
-          matching tier is highlighted; others are dimmed. Invalid amounts dim all three.
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          ₹{GIFT_CARD_MIN_PURCHASE_INR.toLocaleString("en-IN")} – ₹
+          {GIFT_CARD_MAX_PURCHASE_INR.toLocaleString("en-IN")}
         </p>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-3 lg:gap-4">
           {TIER_ORDER.map((tier) => {
             const demo = GIFT_CARD_DEMO[tier];
             const { validFrom, validThru } = giftCardPreviewValidity(tierPreviewIssue, tier);
             const vari = giftCardVariantFromTier(tier);
-            const isActive = activeTier === tier;
-            const isDim = face > 0 && (!purchaseInRange || !isActive);
+            const isActive = purchaseInRange && activeTier === tier;
+            const showSelectionState = face > 0;
+            const dimThis =
+              showSelectionState &&
+              (!purchaseInRange || (purchaseInRange && activeTier !== tier));
             return (
               <div
                 key={tier}
                 className={cn(
                   "transition-all duration-300",
-                  isDim && "opacity-40 grayscale pointer-events-none select-none"
+                  dimThis && "opacity-40 grayscale pointer-events-none select-none"
                 )}
               >
                 <GiftCardVisual
@@ -204,7 +312,7 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
                   validThru={validThru}
                   className={cn(
                     "w-full max-w-full",
-                    isActive && purchaseInRange && "ring-2 ring-accent ring-offset-2"
+                    isActive && "ring-2 ring-accent ring-offset-2"
                   )}
                 />
               </div>
@@ -214,23 +322,25 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
       </div>
 
       <div>
-        <Label className="text-sm font-semibold">Gift card value (₹)</Label>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Purchase range ₹{GIFT_CARD_MIN_PURCHASE_INR.toLocaleString("en-IN")} – ₹
-          {GIFT_CARD_MAX_PURCHASE_INR.toLocaleString("en-IN")}. You receive the full face value;
-          Signature and Elite are billed at a discounted price.
+        <Label htmlFor="gift-card-face-inr" className="text-sm font-semibold">
+          Gift card value (₹)
+        </Label>
+        <p id="gift-card-face-hint" className="mt-1 text-xs text-muted-foreground">
+          ₹{GIFT_CARD_MIN_PURCHASE_INR.toLocaleString("en-IN")} – ₹
+          {GIFT_CARD_MAX_PURCHASE_INR.toLocaleString("en-IN")}.
         </p>
-        <div className="relative mt-2 max-w-md">
+        <div className="relative mt-1.5 max-w-md">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
             ₹
           </span>
           <Input
+            id="gift-card-face-inr"
             type="text"
-            inputMode="decimal"
+            inputMode="numeric"
             value={buyAmount}
-            onChange={(e) => setBuyAmount(e.target.value.replace(/[^\d.]/g, ""))}
-            placeholder="e.g. 100000"
+            onChange={(e) => setBuyAmount(filterDigitsOnly(e.target.value, GIFT_CARD_AMOUNT_MAX_DIGITS))}
             className="pl-8 h-12 text-lg font-semibold"
+            aria-describedby="gift-card-face-hint"
           />
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -256,63 +366,110 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg border border-border bg-muted/20 p-4 space-y-3"
+          className="rounded-lg border border-border bg-muted/20 p-4 sm:p-5 space-y-4"
         >
           <p className="text-sm font-semibold text-foreground">Shipping — Elite physical card</p>
-          <p className="text-xs text-muted-foreground">
-            We use this to mail your physical card. All fields are required.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label className="text-xs">Apartment / House name</Label>
-              <Input
-                value={ship.apartment}
-                onChange={(e) => setShip((s) => ({ ...s, apartment: e.target.value }))}
-                className="mt-1"
-                placeholder="Apartment, suite, etc."
-                required
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <Label className="text-xs">Street address</Label>
-              <Input
-                value={ship.street}
-                onChange={(e) => setShip((s) => ({ ...s, street: e.target.value }))}
-                className="mt-1"
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-xs">City</Label>
-              <Input
-                value={ship.city}
-                onChange={(e) => setShip((s) => ({ ...s, city: e.target.value }))}
-                className="mt-1"
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-xs">District</Label>
-              <Input
-                value={ship.district}
-                onChange={(e) => setShip((s) => ({ ...s, district: e.target.value }))}
-                className="mt-1"
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-xs">PIN code</Label>
-              <Input
-                value={ship.pincode}
-                onChange={(e) =>
-                  setShip((s) => ({ ...s, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) }))
-                }
-                className="mt-1 font-mono"
-                maxLength={6}
-                placeholder="6 digits"
-                required
-              />
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ShipField
+              id="ship-apartment"
+              label="Apartment / House name"
+              helper="Building, villa, or tower name as used on postal mail."
+              error={shipErrors.apartment}
+              className="sm:col-span-2"
+            >
+              {({ invalid, describedBy }) => (
+                <Input
+                  id="ship-apartment"
+                  value={ship.apartment}
+                  onChange={(e) => patchShip("apartment", e.target.value)}
+                  className={cn("mt-1.5", invalid && "border-red-600 focus-visible:border-red-600 focus-visible:ring-red-600/30")}
+                  autoComplete="address-line2"
+                  aria-invalid={invalid}
+                  aria-describedby={describedBy}
+                  maxLength={200}
+                />
+              )}
+            </ShipField>
+            <ShipField
+              id="ship-street"
+              label="Street address"
+              helper="Street, road name, number, and nearby landmarks."
+              error={shipErrors.street}
+              className="sm:col-span-2"
+            >
+              {({ invalid, describedBy }) => (
+                <Input
+                  id="ship-street"
+                  value={ship.street}
+                  onChange={(e) => patchShip("street", e.target.value)}
+                  className={cn("mt-1.5", invalid && "border-red-600 focus-visible:border-red-600 focus-visible:ring-red-600/30")}
+                  autoComplete="street-address"
+                  aria-invalid={invalid}
+                  aria-describedby={describedBy}
+                  maxLength={300}
+                />
+              )}
+            </ShipField>
+            <ShipField
+              id="ship-city"
+              label="City"
+              helper="City or town for delivery."
+              error={shipErrors.city}
+            >
+              {({ invalid, describedBy }) => (
+                <Input
+                  id="ship-city"
+                  value={ship.city}
+                  onChange={(e) => patchShip("city", e.target.value)}
+                  className={cn("mt-1.5", invalid && "border-red-600 focus-visible:border-red-600 focus-visible:ring-red-600/30")}
+                  autoComplete="address-level2"
+                  aria-invalid={invalid}
+                  aria-describedby={describedBy}
+                  maxLength={100}
+                />
+              )}
+            </ShipField>
+            <ShipField
+              id="ship-district"
+              label="District"
+              helper="District, taluk, or subdivision."
+              error={shipErrors.district}
+            >
+              {({ invalid, describedBy }) => (
+                <Input
+                  id="ship-district"
+                  value={ship.district}
+                  onChange={(e) => patchShip("district", e.target.value)}
+                  className={cn("mt-1.5", invalid && "border-red-600 focus-visible:border-red-600 focus-visible:ring-red-600/30")}
+                  autoComplete="address-level1"
+                  aria-invalid={invalid}
+                  aria-describedby={describedBy}
+                  maxLength={100}
+                />
+              )}
+            </ShipField>
+            <ShipField
+              id="ship-pincode"
+              label="PIN code"
+              helper="Six digits, India Post PIN only (numbers)."
+              error={shipErrors.pincode}
+              className="sm:col-span-2"
+            >
+              {({ invalid, describedBy }) => (
+                <Input
+                  id="ship-pincode"
+                  type="text"
+                  inputMode="numeric"
+                  value={ship.pincode}
+                  onChange={(e) => patchShip("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className={cn("mt-1.5 max-w-[200px] font-mono", invalid && "border-red-600 focus-visible:border-red-600 focus-visible:ring-red-600/30")}
+                  autoComplete="postal-code"
+                  aria-invalid={invalid}
+                  aria-describedby={describedBy}
+                  maxLength={6}
+                />
+              )}
+            </ShipField>
           </div>
         </motion.div>
       )}
@@ -371,8 +528,8 @@ export function GiftCardPurchaseForm({ user, onPurchased }: Props) {
             })()
           ) : (
             <p className="text-sm text-red-700">
-              Enter an amount between ₹{GIFT_CARD_MIN_PURCHASE_INR.toLocaleString("en-IN")} and ₹
-              {GIFT_CARD_MAX_PURCHASE_INR.toLocaleString("en-IN")} to see pricing and continue.
+              Enter ₹{GIFT_CARD_MIN_PURCHASE_INR.toLocaleString("en-IN")} – ₹
+              {GIFT_CARD_MAX_PURCHASE_INR.toLocaleString("en-IN")}.
             </p>
           )}
         </motion.div>

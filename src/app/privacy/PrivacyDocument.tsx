@@ -29,7 +29,7 @@ export function PrivacyDocument() {
           </a>
           &nbsp;&nbsp;|&nbsp;&nbsp;
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>
         </p>
       </header>
@@ -631,7 +631,7 @@ export function PrivacyDocument() {
           </a>{" "}
           or call{" "}
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>
           .
         </p>
@@ -750,7 +750,7 @@ export function PrivacyDocument() {
           </a>{" "}
           or call{" "}
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>
           . We will investigate and take appropriate action, including data deletion, within 30 days of receiving your
           request.
@@ -837,7 +837,7 @@ export function PrivacyDocument() {
             <li>
               Phone:{" "}
               <a href="tel:+917090005700" className={link}>
-                +91 7090005700
+                +91 70 9000 5700
               </a>{" "}
               (24/7 Concierge Support)
             </li>
@@ -918,7 +918,7 @@ export function PrivacyDocument() {
             <li>
               Phone / WhatsApp:{" "}
               <a href="tel:+917090005700" className={link}>
-                +91 7090005700
+                +91 70 9000 5700
               </a>{" "}
               (24/7 Concierge — Available round the clock)
             </li>

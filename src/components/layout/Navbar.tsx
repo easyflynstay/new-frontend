@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFlipOverlay } from "@/hooks/useFlipOverlay";
+import { DISPLAY_PHONE, TEL_HREF } from "@/lib/contact-info";
 
 const navLinks = [
   { href: "/", label: "HOME" },
@@ -22,7 +23,6 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [advisoryClosed, setAdvisoryClosed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { wrapperRef: userMenuWrapperRef, panelRef: userMenuPanelRef, placement: userMenuPlacement, positionClass: userMenuPositionClass } =
@@ -32,21 +32,6 @@ export function Navbar() {
     <>
       {/* Scrolls away with page — only the navy nav bar sticks below */}
       <header className="w-full bg-card">
-        <AnimatePresence>
-          {!advisoryClosed && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="flex items-center justify-center gap-2 bg-accent px-4 py-2 text-sm text-primary">
-                <span className="animate-shimmer">Travel Advisory: Check your booking status for any route updates.</span>
-                <button type="button" aria-label="Close advisory" className="ml-2 p-1 hover:bg-accent-foreground/10" onClick={() => setAdvisoryClosed(true)}>×</button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
         <div className="border-b border-border bg-white px-4 py-3">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-3">
@@ -55,7 +40,9 @@ export function Navbar() {
             <div className="flex items-center gap-4 text-sm text-charcoal">
               <span className="hidden sm:inline font-medium">PREMIUM TRAVEL EXPERIENCE</span>
               <span className="hidden sm:inline font-medium">24/7 CONCIERGE</span>
-              <span className="font-semibold text-accent">+91 7090005700</span>
+              <a href={TEL_HREF} className="font-semibold text-accent hover:underline">
+                {DISPLAY_PHONE}
+              </a>
             </div>
           </div>
         </div>
@@ -175,7 +162,7 @@ export function Navbar() {
                 </AnimatePresence>
               </div>
             ) : (
-              <Link href="/login"><Button variant="accent" size="sm" className="text-primary">MY TRIPS</Button></Link>
+              <Link href="/login"><Button variant="accent" size="sm" className="text-primary">My Account</Button></Link>
             )}
           </div>
         </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { DISPLAY_PHONE, TEL_HREF } from "@/lib/contact-info";
 import { useAuth } from "@/contexts/AuthContext";
 
 const links = [
@@ -98,7 +99,9 @@ export function DashboardSidebar() {
         <div className="bg-accent/5 border border-accent/20 p-4">
           <p className="font-heading text-sm font-semibold text-foreground">Need help?</p>
           <p className="mt-1 text-xs text-muted-foreground">Our concierge team is available 24/7.</p>
-          <p className="mt-2 text-sm font-semibold text-accent">+91 7090005700</p>
+          <a href={TEL_HREF} className="mt-2 block text-sm font-semibold text-accent hover:underline">
+            {DISPLAY_PHONE}
+          </a>
         </div>
       </div>
     </aside>

@@ -31,7 +31,7 @@ export function RefundCancellationDocument() {
           </a>
           &nbsp;&nbsp;|&nbsp;&nbsp;
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>
         </p>
       </header>
@@ -183,7 +183,7 @@ export function RefundCancellationDocument() {
           <li>
             Customer Support Phone / WhatsApp: Contact our 24/7 concierge team at{" "}
             <a href="tel:+917090005700" className={link}>
-              +91 7090005700
+              +91 70 9000 5700
             </a>
             . Please note that while a phone or WhatsApp inquiry may initiate the cancellation process, a formal written
             confirmation (email or online request) may be required for the request to be fully processed.
@@ -316,7 +316,7 @@ export function RefundCancellationDocument() {
           notifications from airlines when a flight is cancelled. If your flight has been cancelled by the airline and you
           have not heard from EasyFlyNStay within a reasonable time, please contact our customer support team at{" "}
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>{" "}
           or{" "}
           <a href="mailto:support@easyflynstay.com" className={link}>
@@ -355,7 +355,7 @@ export function RefundCancellationDocument() {
         <ul className={ul}>
           <li>Online: Log in to your account at www.easyflynstay.com, go to &ldquo;My Bookings&rdquo; or &ldquo;My Trips&rdquo;, select the relevant booking, and choose the &ldquo;Modify Booking&rdquo; or &ldquo;Change Date&rdquo; option if available.</li>
           <li>Email: Send a detailed amendment request to <a href="mailto:support@easyflynstay.com" className={link}>support@easyflynstay.com</a> with your booking reference number, passenger names, current travel dates, and the desired new travel dates or changes.</li>
-          <li>Customer Support: Contact our concierge team at <a href="tel:+917090005700" className={link}>+91 7090005700</a> (24/7) for assistance with complex amendments, especially for multi-sector international itineraries.</li>
+          <li>Customer Support: Contact our concierge team at <a href="tel:+917090005700" className={link}>+91 70 9000 5700</a> (24/7) for assistance with complex amendments, especially for multi-sector international itineraries.</li>
         </ul>
         <p className={p}>
           Amendment requests are processed subject to seat availability on the preferred new travel date and the applicable
@@ -611,7 +611,7 @@ export function RefundCancellationDocument() {
           retry the transaction immediately. Instead, check your bank statement to confirm whether the payment was debited,
           and then contact EasyFlyNStay customer support at{" "}
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>{" "}
           or{" "}
           <a href="mailto:support@easyflynstay.com" className={link}>
@@ -659,7 +659,7 @@ export function RefundCancellationDocument() {
           </a>{" "}
           or{" "}
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>{" "}
           before initiating a chargeback or payment dispute with their bank. The vast majority of genuine payment and
           refund concerns can be resolved quickly and satisfactorily through direct communication with our support team.
@@ -750,7 +750,7 @@ export function RefundCancellationDocument() {
         <ul className={ul}>
           <li>Online via the &ldquo;My Bookings&rdquo; section (recommended for fastest processing).</li>
           <li>Email to support@easyflynstay.com with full booking details.</li>
-          <li>Phone / WhatsApp via +91 7090005700 (24/7 concierge support).</li>
+          <li>Phone / WhatsApp via +91 70 9000 5700 (24/7 concierge support).</li>
         </ul>
         <p className={`${p} font-semibold text-foreground`}>Step 3: Review the Refund Amount</p>
         <p className={p}>
@@ -777,7 +777,7 @@ export function RefundCancellationDocument() {
           </a>{" "}
           or{" "}
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>
           , providing your booking reference number and bank transaction details. We will investigate the delay and
           provide an update within 48 hours.
@@ -848,7 +848,7 @@ export function RefundCancellationDocument() {
             <li>
               Phone / WhatsApp:{" "}
               <a href="tel:+917090005700" className={link}>
-                +91 7090005700
+                +91 70 9000 5700
               </a>{" "}
               (24/7 — Available round the clock, including weekends and public holidays)
             </li>

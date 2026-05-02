@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { DISPLAY_PHONE, OFFICES, SUPPORT_EMAIL, TEL_HREF } from "@/lib/contact-info";
 
 const footerLinks = [
   { label: "Track Booking", href: "/track-booking" },
@@ -31,9 +32,17 @@ export function Footer() {
           </div>
           <div>
             <h4 className="font-heading text-sm font-semibold uppercase">Contact</h4>
-            <p className="mt-2 text-sm text-white/80">+91 7090005700</p>
-            <p className="text-sm text-white/80">support@easyflynstay.com</p>
-            <p className="mt-1 text-sm text-white/80">Ground Floor, Plot No: 128-P2, Near Ginger Hotel, EPIP Zone, Whitefield, Bengaluru, Karnataka 560066</p>
+            <p className="mt-2 text-sm text-white/80">
+              <a href={TEL_HREF} className="hover:text-accent transition-colors">
+                {DISPLAY_PHONE}
+              </a>
+            </p>
+            <p className="mt-2 text-sm text-white/80">{SUPPORT_EMAIL}</p>
+            <div className="mt-2 space-y-2 text-sm text-white/80">
+              {OFFICES.slice(0, 1).map((o) => (
+                <p key={o.title}>{o.lines}</p>
+              ))}
+            </div>
           </div>
           <div>
             <h4 className="font-heading text-sm font-semibold uppercase">24/7 Concierge</h4>

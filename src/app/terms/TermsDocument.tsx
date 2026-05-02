@@ -31,7 +31,7 @@ export function TermsDocument() {
           </a>
           &nbsp;&nbsp;|&nbsp;&nbsp;
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>
         </p>
       </header>
@@ -208,7 +208,7 @@ export function TermsDocument() {
             </a>{" "}
             or{" "}
             <a href="tel:+917090005700" className={link}>
-              +91 7090005700
+              +91 70 9000 5700
             </a>{" "}
             if you suspect any unauthorized access to your account, compromise of your credentials, or any other security breach.
           </li>
@@ -363,7 +363,7 @@ export function TermsDocument() {
           </a>{" "}
           or call{" "}
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>{" "}
           immediately.
         </p>
@@ -517,7 +517,7 @@ export function TermsDocument() {
           </a>
           , or by contacting our customer support team at{" "}
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>
           . The following conditions govern all cancellations:
         </p>
@@ -677,7 +677,7 @@ export function TermsDocument() {
           a result of a booking cancellation undertaken as a fraud prevention measure. Users who believe their account
           has been compromised or used fraudulently should immediately contact EasyFlyNStay at{" "}
           <a href="tel:+917090005700" className={link}>
-            +91 7090005700
+            +91 70 9000 5700
           </a>{" "}
           or{" "}
           <a href="mailto:support@easyflynstay.com" className={link}>
@@ -1104,7 +1104,7 @@ export function TermsDocument() {
             <li>
               Phone / WhatsApp Concierge:{" "}
               <a href="tel:+917090005700" className={link}>
-                +91 7090005700
+                +91 70 9000 5700
               </a>{" "}
               (Available 24/7, 365 days a year)
             </li>

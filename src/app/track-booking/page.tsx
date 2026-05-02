@@ -108,7 +108,6 @@ function TrackBookingContent() {
                       <Input
                         value={bookingId}
                         onChange={(e) => setBookingId(e.target.value)}
-                        placeholder="e.g. BK-20240315-00001"
                         className="mt-1"
                         required
                       />
@@ -119,7 +118,6 @@ function TrackBookingContent() {
                         type="text"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Verify with booking email"
                         className="mt-1"
                       />
                     </div>

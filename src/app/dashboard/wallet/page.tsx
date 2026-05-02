@@ -14,6 +14,9 @@ import {
 } from "@/services/wallet";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
 import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
+import { filterDigitsOnly } from "@/lib/input-filters";
+
+const WALLET_AMOUNT_MAX_DIGITS = 12;
 
 function formatDate(iso: string) {
   try {
@@ -63,7 +66,9 @@ export default function WalletPage() {
     fetchWallet();
   }, [fetchWallet]);
 
-  const amountToAdd = selectedAmount ?? (customAmount ? parseFloat(customAmount) : 0);
+  const customDigits = filterDigitsOnly(customAmount, WALLET_AMOUNT_MAX_DIGITS);
+  const parsedCustom = customDigits ? parseInt(customDigits, 10) : 0;
+  const amountToAdd = selectedAmount ?? (Number.isFinite(parsedCustom) && parsedCustom >= 1 ? parsedCustom : 0);
   const isValidAmount = amountToAdd >= 1;
 
   const handleAddFunds = async () => {
@@ -227,13 +232,12 @@ export default function WalletPage() {
               </div>
               <div className="flex gap-3 flex-wrap items-center">
                 <Input
-                  placeholder="Custom amount (₹)"
-                  type="number"
-                  min={1}
+                  type="text"
+                  inputMode="numeric"
                   className="max-w-[200px]"
                   value={customAmount}
                   onChange={(e) => {
-                    setCustomAmount(e.target.value);
+                    setCustomAmount(filterDigitsOnly(e.target.value, WALLET_AMOUNT_MAX_DIGITS));
                     setSelectedAmount(null);
                   }}
                 />

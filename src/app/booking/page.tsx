@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn, isValidEmail } from "@/lib/utils";
+import { filterDigitsOnly } from "@/lib/input-filters";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMyGiftCards, type GiftCard } from "@/services/giftcards";
 import {
@@ -66,6 +67,7 @@ function displayCabin(c: string): string {
 
 /** Restore /flights search URL (uses origin/destination; booking links use from/to). */
 const DATE_OF_BIRTH_MIN = "1900-01-01";
+const BOOKING_PHONE_DIGIT_MAX = 15;
 
 /** Razorpay requires at least ₹1 when charging a positive amount. */
 function razorpayChargeableInr(payable: number): number {
@@ -774,10 +776,10 @@ function BookingContent() {
                           <Label>Phone number</Label>
                           <Input
                             type="tel"
+                            inputMode="numeric"
                             className="mt-1"
-                            placeholder="+91 98765 43210"
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            onChange={(e) => setPhone(filterDigitsOnly(e.target.value, BOOKING_PHONE_DIGIT_MAX))}
                           />
                         </div>
                       </>
@@ -798,10 +800,10 @@ function BookingContent() {
                           <Label>Phone number</Label>
                           <Input
                             type="tel"
+                            inputMode="numeric"
                             className="mt-1"
-                            placeholder="+91 98765 43210"
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            onChange={(e) => setPhone(filterDigitsOnly(e.target.value, BOOKING_PHONE_DIGIT_MAX))}
                           />
                         </div>
                         <p className="pt-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Passengers</p>
@@ -902,7 +904,6 @@ function BookingContent() {
                         <Label className="text-xs text-muted-foreground">Optional note</Label>
                         <Input
                           className="mt-1"
-                          placeholder="e.g. website name, fare conditions"
                           value={quoteNote}
                           onChange={(e) => setQuoteNote(e.target.value)}
                           disabled={quoteLoading}
@@ -975,7 +976,6 @@ function BookingContent() {
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <Input
                           className="font-mono sm:max-w-xs"
-                          placeholder="e.g. CP-XXXXXXXXXX"
                           value={couponInput}
                           onChange={(e) => {
                             setCouponInput(e.target.value.toUpperCase());
@@ -1164,7 +1164,6 @@ function BookingContent() {
                               <div className="mt-2 flex items-center gap-3">
                                 <Input
                                   maxLength={4}
-                                  placeholder="e.g. 80IX"
                                   value={giftCardLast4}
                                   onChange={(e) => {
                                     const next = e.target.value

@@ -64,43 +64,43 @@ const testimonials = [
   {
     name: "Rajesh Sharma",
     text: "Incredible service! Saved over ₹2,55,000 on my business class flight to London. The team at EASYFLYNSTAY went above and beyond with every detail.",
-    from: "Mumbai, India",
+    from: "Mumbai, Maharashtra",
     image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
   },
   {
-    name: "Christine Mueller",
+    name: "Meera Ghosh",
     text: "From booking to boarding, everything was seamless. The concierge team helped me change my dates last minute with zero hassle.",
-    from: "Los Angeles, USA",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face&q=85",
+    from: "Kolkata, West Bengal",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
   },
   {
     name: "Ananya Patel",
     text: "Will book again without a second thought. Professional, reliable, and the fares were genuinely the best I could find anywhere online.",
-    from: "Delhi, India",
+    from: "New Delhi, NCR",
     image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
   },
   {
-    name: "James O'Connor",
-    text: "EASYFLYNSTAY found me a first class deal to Tokyo that was 60% cheaper than what I found on my own. Absolutely phenomenal.",
-    from: "London, UK",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face&q=85",
+    name: "Vikram Reddy",
+    text: "EASYFLYNSTAY found me a first class deal to Singapore that was far better than what I saw elsewhere. Absolutely phenomenal.",
+    from: "Hyderabad, Telangana",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
   },
   {
     name: "Priya Menon",
     text: "Their 24/7 concierge is the real deal. Had an issue at 2 AM and they resolved it within minutes. Premium service all the way.",
-    from: "Bangalore, India",
+    from: "Bengaluru, Karnataka",
     image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
   },
   {
-    name: "David Chen",
+    name: "Dhruba Das",
     text: "Been using EASYFLYNSTAY for two years now. Every single booking has been flawless. My go-to for all business travel.",
-    from: "Singapore",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face&q=85",
+    from: "Guwahati, Assam",
+    image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop&crop=face&q=85",
     rating: 5,
   },
 ];
@@ -340,7 +340,7 @@ export default function HomePage() {
           <div className="relative mx-auto max-w-7xl px-4">
             <SectionReveal>
               <h2 className="font-heading text-3xl font-semibold text-foreground text-center">What Travelers Say</h2>
-              <p className="mt-2 text-center text-muted-foreground">Over 50,000 happy travelers trust EASYFLYNSTAY worldwide.</p>
+              <p className="mt-2 text-center text-muted-foreground">Trusted by travelers across India — from metros to every corner of the country.</p>
             </SectionReveal>
             <motion.div
               variants={containerVariants}
