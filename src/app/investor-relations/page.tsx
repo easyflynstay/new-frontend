@@ -63,9 +63,6 @@ export default function InvestorRelationsPage() {
             >
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-accent">EASYFLYNSTAY</p>
               <h1 className="mt-3 font-heading text-3xl font-bold md:text-4xl">Investor relations</h1>
-              <p className="mt-3 text-sm text-white/85 md:text-base text-balance">
-                For partners and investors arriving via QR or direct introduction—highlights and how to reach us.
-              </p>
             </motion.div>
           </div>
         </section>
@@ -145,14 +142,14 @@ export default function InvestorRelationsPage() {
                 </ul>
                 <div className="mt-8">
                   <h3 className="font-heading text-sm font-semibold uppercase tracking-wide text-foreground">Offices</h3>
-                  <ol className="mt-4 list-decimal space-y-4 pl-5 text-sm text-muted-foreground leading-relaxed">
-                    {OFFICES.map((o) => (
-                      <li key={o.title}>
-                        <span className="font-medium text-foreground">{o.title}: </span>
-                        {o.lines}
+                  <ul className="mt-4 list-none space-y-4 pl-0 text-sm text-muted-foreground leading-relaxed">
+                    {OFFICES.map((o, i) => (
+                      <li key={`${o.address}-${i}`}>
+                        <span className="font-medium text-foreground">{o.label}: </span>
+                        {o.address}
                       </li>
                     ))}
-                  </ol>
+                  </ul>
                 </div>
                 <button
                   type="button"

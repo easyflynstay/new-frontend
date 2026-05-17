@@ -147,11 +147,11 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-heading font-semibold">Offices</h3>
-                    <ul className="mt-1 list-decimal space-y-2 pl-5 text-sm text-foreground">
-                      {OFFICES.map((o) => (
-                        <li key={o.title}>
-                          <span className="font-medium">{o.title}: </span>
-                          {o.lines}
+                    <ul className="mt-1 list-none space-y-2 pl-0 text-sm text-foreground">
+                      {OFFICES.map((o, i) => (
+                        <li key={`${o.address}-${i}`}>
+                          <span className="font-medium">{o.label}: </span>
+                          {o.address}
                         </li>
                       ))}
                     </ul>

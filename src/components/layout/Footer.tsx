@@ -40,7 +40,10 @@ export function Footer() {
             <p className="mt-2 text-sm text-white/80">{SUPPORT_EMAIL}</p>
             <div className="mt-2 space-y-2 text-sm text-white/80">
               {OFFICES.slice(0, 1).map((o) => (
-                <p key={o.title}>{o.lines}</p>
+                <p key={o.address}>
+                  <span className="text-white">{o.label}: </span>
+                  {o.address}
+                </p>
               ))}
             </div>
           </div>
