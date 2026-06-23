@@ -125,7 +125,7 @@ export function HeroSearch() {
             className={cn(
               "flex items-center gap-2 rounded-none px-4 py-2.5 text-sm font-semibold tracking-wide transition-all whitespace-nowrap",
               tripType === "oneway"
-                ? "bg-accent text-primary shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-slate-500 hover:bg-slate-50 hover:text-primary"
             )}
           >
@@ -153,18 +153,6 @@ export function HeroSearch() {
         <div className="flex shrink-0 items-center rounded-none border border-slate-200 bg-white p-1 shadow-sm sm:ml-auto">
           <button
             type="button"
-            onClick={() => setTripScope("international")}
-            className={cn(
-              "whitespace-nowrap rounded-none px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.1em] transition-all",
-              tripScope === "international"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-slate-500 hover:bg-slate-50 hover:text-primary"
-            )}
-          >
-            International
-          </button>
-          <button
-            type="button"
             onClick={() => setTripScope("domestic")}
             className={cn(
               "whitespace-nowrap rounded-none px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.1em] transition-all",
@@ -174,6 +162,18 @@ export function HeroSearch() {
             )}
           >
             Domestic
+          </button>
+          <button
+            type="button"
+            onClick={() => setTripScope("international")}
+            className={cn(
+              "whitespace-nowrap rounded-none px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.1em] transition-all",
+              tripScope === "international"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-slate-500 hover:bg-slate-50 hover:text-primary"
+            )}
+          >
+            International
           </button>
         </div>
       </div>

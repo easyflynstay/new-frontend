@@ -2,9 +2,11 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AnimatedModal } from "@/components/ui/animated-modal";
 import { INVESTOR_EMAIL } from "@/lib/contact-info";
 import { filterDigitsOnly } from "@/lib/input-filters";
 import { cn } from "@/lib/utils";
@@ -37,26 +39,11 @@ export function InvestorContactModal({ open, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
-
-  useEffect(() => {
     if (open && panelRef.current) {
       const el = panelRef.current.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, button');
       el?.focus();
     }
-  }, [open]);
-
-  if (!open) return null;
+  }, [open, sent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,56 +91,59 @@ export function InvestorContactModal({ open, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] overflow-y-auto overflow-x-hidden">
-      <div className="relative flex min-h-[100dvh] items-center justify-center p-4 sm:p-6">
-        <div
-          className="absolute inset-0 z-0 min-h-full w-full bg-primary/60 backdrop-blur-sm"
-          aria-hidden
+    <AnimatedModal
+      open={open}
+      onClose={onClose}
+      panelRef={panelRef}
+      labelledBy={titleId}
+      className="max-w-2xl"
+    >
+      <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-3 sm:px-6 sm:py-3.5">
+        <div className="min-w-0 pr-2">
+          <h2 id={titleId} className="font-heading text-base font-semibold text-foreground sm:text-lg">
+            Contact investor relations
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            We will respond to {INVESTOR_EMAIL} inquiries as promptly as we can.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="shrink-0 p-2 text-muted-foreground hover:text-foreground leading-none text-xl transition-colors"
+          aria-label="Close"
           onClick={onClose}
-        />
-        <div
-          ref={panelRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={titleId}
-          className={cn(
-            "relative z-10 w-full max-w-2xl border border-border bg-card shadow-xl",
-            "my-8 sm:my-10 flex flex-col"
-          )}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-3 sm:px-6 sm:py-3.5">
-            <div className="min-w-0 pr-2">
-              <h2 id={titleId} className="font-heading text-base font-semibold text-foreground sm:text-lg">
-                Contact investor relations
-              </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                We will respond to {INVESTOR_EMAIL} inquiries as promptly as we can.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="shrink-0 p-2 text-muted-foreground hover:text-foreground leading-none text-xl"
-              aria-label="Close"
-              onClick={onClose}
-            >
-              ×
-            </button>
-          </div>
+          ×
+        </button>
+      </div>
 
-          <div className="px-5 py-4 sm:px-6 sm:py-5">
-            {sent ? (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Thank you. Your message has been sent. Our team will be in touch.
-                </p>
-                <Button type="button" className="mt-5 rounded-none" variant="outline" onClick={onClose}>
-                  Close
-                </Button>
-              </>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-3.5">
+      <div className="px-5 py-4 sm:px-6 sm:py-5">
+        <AnimatePresence mode="wait">
+          {sent ? (
+            <motion.div
+              key="investor-sent"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              <p className="text-sm text-muted-foreground">
+                Thank you. Your message has been sent. Our team will be in touch.
+              </p>
+              <Button type="button" className="mt-5 rounded-none" variant="outline" onClick={onClose}>
+                Close
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.form
+              key="investor-form"
+              onSubmit={handleSubmit}
+              className="space-y-3 sm:space-y-3.5"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
                 <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                   <div>
                     <Label htmlFor="inv-fn">First name</Label>
@@ -261,11 +251,10 @@ export function InvestorContactModal({ open, onClose }: Props) {
                     Cancel
                   </Button>
                 </div>
-              </form>
+              </motion.form>
             )}
-          </div>
-        </div>
+        </AnimatePresence>
       </div>
-    </div>
+    </AnimatedModal>
   );
 }

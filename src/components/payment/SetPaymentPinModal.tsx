@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AnimatedModal } from "@/components/ui/animated-modal";
 import { cn } from "@/lib/utils";
 
 interface SetPaymentPinModalProps {
@@ -17,12 +18,13 @@ export function SetPaymentPinModal({ open, onSet, loading = false, error }: SetP
   const [pin, setPin] = useState("");
   const [confirm, setConfirm] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const titleId = "set-pin-title";
 
   useEffect(() => {
     if (open) {
       setPin("");
       setConfirm("");
-      setTimeout(() => inputRef.current?.focus(), 100);
+      setTimeout(() => inputRef.current?.focus(), 150);
     }
   }, [open]);
 
@@ -35,20 +37,10 @@ export function SetPaymentPinModal({ open, onSet, loading = false, error }: SetP
     setConfirm("");
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="set-pin-title"
-    >
-      <div
-        className="w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-lg"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <h2 id="set-pin-title" className="text-lg font-semibold text-foreground">
+    <AnimatedModal open={open} labelledBy={titleId} zIndex="z-50" dismissible={false}>
+      <div className="p-6">
+        <h2 id={titleId} className="text-lg font-semibold text-foreground">
           Create payment PIN
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -95,6 +87,6 @@ export function SetPaymentPinModal({ open, onSet, loading = false, error }: SetP
           </div>
         </form>
       </div>
-    </div>
+    </AnimatedModal>
   );
 }

@@ -132,7 +132,8 @@ export function GiftCardVisual({
     >
       <div
         className={cn(
-          "relative aspect-[85.6/54] w-full overflow-hidden ring-1 ring-black/5",
+          "relative aspect-[85.6/54] w-full overflow-hidden",
+          rounded === "top" ? "ring-0" : "ring-1 ring-black/5",
           roundMain,
           "bg-gradient-to-br",
           v.base

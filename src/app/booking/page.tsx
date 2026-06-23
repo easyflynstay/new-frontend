@@ -29,6 +29,7 @@ import { usdToInr, formatInr } from "@/lib/currency";
 import { computeTierDiscount, TIER_L1_INR, TIER_L2_INR } from "@/lib/pricing";
 import { isDomesticIndiaRoute } from "@/lib/indianAirports";
 import { PaymentPinEntry } from "@/components/payment/PaymentPinEntry";
+import { AnimatedModal } from "@/components/ui/animated-modal";
 import { PremiumDateInput } from "@/components/flights/flight-search-fields";
 import { getAxiosErrorMessage } from "@/lib/api";
 import { getGiftCardTierFromAmount, giftCardVariantFromTier } from "@/lib/gift-card-tiers";
@@ -1308,20 +1309,24 @@ function BookingContent() {
         </div>
       </main>
       <Footer />
-      {quoteSuccessRef ? (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
-          <div className="flex max-h-[90vh] w-full max-w-md flex-col gap-4 overflow-y-auto border border-border bg-card p-6 shadow-lg">
-            <h3 className="font-heading text-lg font-semibold text-primary">We received your screenshot</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Reference <span className="font-mono font-semibold text-foreground">{quoteSuccessRef}</span>. Our team will get back to you within 12 hours
-              with the best price we can offer. A confirmation has been sent to your email.
-            </p>
-            <Button variant="accent" className="text-primary w-full sm:w-auto" onClick={() => setQuoteSuccessRef(null)}>
-              OK
-            </Button>
-          </div>
+      <AnimatedModal
+        open={quoteSuccessRef !== null}
+        onClose={() => setQuoteSuccessRef(null)}
+        labelledBy="quote-success-title"
+      >
+        <div className="flex max-h-[90vh] flex-col gap-4 overflow-y-auto p-6">
+          <h3 id="quote-success-title" className="font-heading text-lg font-semibold text-primary">
+            We received your screenshot
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Reference <span className="font-mono font-semibold text-foreground">{quoteSuccessRef}</span>. Our team will get back to you within 12 hours
+            with the best price we can offer. A confirmation has been sent to your email.
+          </p>
+          <Button variant="accent" className="text-primary w-full sm:w-auto" onClick={() => setQuoteSuccessRef(null)}>
+            OK
+          </Button>
         </div>
-      ) : null}
+      </AnimatedModal>
       <PaymentPinEntry
         open={showGiftCardPin}
         onClose={() => setShowGiftCardPin(false)}

@@ -40,7 +40,7 @@ function RotatingCards({ active, onSelect }: { active: number; onSelect: (i: num
   };
 
   return (
-    <div className="relative h-[320px] w-[420px] mx-auto">
+    <div className="relative h-[320px] w-full max-w-[440px] mx-auto lg:ml-auto">
       {TIER_ORDER.map((tier, i) => {
         const demo = GIFT_CARD_DEMO[tier];
         const pos = getPosition(i);
@@ -107,14 +107,14 @@ export default function GiftCardsPage() {
             className="object-cover opacity-20"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/90 to-primary" />
-          <div className="relative mx-auto max-w-5xl px-4">
-            <div className="grid gap-10 md:grid-cols-2 items-center">
+          <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12 xl:gap-16">
               {/* Text */}
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="text-white"
+                className="text-white lg:max-w-xl"
               >
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -128,7 +128,7 @@ export default function GiftCardsPage() {
                 <h1 className="font-heading text-4xl font-bold md:text-5xl leading-tight">
                   Ease your struggles in<br />choosing the <span className="text-accent">perfect gift!</span>
                 </h1>
-                <p className="mt-4 text-lg text-white/70 max-w-md">Three exclusive tiers crafted for every occasion. Give the gift of luxury travel with EASYFLYNSTAY.</p>
+                <p className="mt-4 text-lg text-white/70 max-w-lg">Three exclusive tiers crafted for every occasion. Give the gift of luxury travel with EASYFLYNSTAY.</p>
                 <div className="mt-6 flex gap-3">
                   <Button variant="accent" size="lg" className="text-primary font-semibold" onClick={handlePurchaseClick}>
                     Purchase Gift Card
@@ -141,37 +141,35 @@ export default function GiftCardsPage() {
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="flex items-center justify-center"
+                className="flex w-full flex-col items-center lg:items-end lg:-translate-x-10 xl:-translate-x-14"
               >
                 <RotatingCards active={activeCard} onSelect={setActiveCard} />
+                <div className="mt-8 flex flex-col items-center gap-2">
+                  <div className="flex gap-2">
+                    {TIER_ORDER.map((name, i) => (
+                      <button
+                        key={name}
+                        onClick={() => setActiveCard(i)}
+                        className={cn(
+                          "h-2 rounded-full transition-all duration-300",
+                          i === activeCard ? "bg-accent w-8" : "bg-white/30 w-2 hover:bg-white/50"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={activeCard}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="text-xs text-white/50 font-medium tracking-wider uppercase"
+                    >
+                      {TIER_ORDER[activeCard]} Card
+                    </motion.p>
+                  </AnimatePresence>
+                </div>
               </motion.div>
-            </div>
-
-            {/* Dots indicator + card name */}
-            <div className="mt-8 flex flex-col items-center gap-2">
-              <div className="flex gap-2">
-                {TIER_ORDER.map((name, i) => (
-                  <button
-                    key={name}
-                    onClick={() => setActiveCard(i)}
-                    className={cn(
-                      "h-2 rounded-full transition-all duration-300",
-                      i === activeCard ? "bg-accent w-8" : "bg-white/30 w-2 hover:bg-white/50"
-                    )}
-                  />
-                ))}
-              </div>
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={activeCard}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  className="text-xs text-white/50 font-medium tracking-wider uppercase"
-                >
-                  {TIER_ORDER[activeCard]} Card
-                </motion.p>
-              </AnimatePresence>
             </div>
           </div>
         </section>
@@ -201,8 +199,7 @@ export default function GiftCardsPage() {
                     whileHover={{ y: -8, scale: 1.02 }}
                     transition={{ duration: 0.3 }}
                     className={cn(
-                      "relative flex flex-col overflow-hidden border-2 shadow-lg transition-shadow hover:shadow-2xl h-full",
-                      tier.popular ? "border-accent" : tier.borderColor,
+                      "relative flex flex-col overflow-hidden shadow-lg transition-shadow hover:shadow-2xl h-full",
                       tier.name === "Signature" ? tier.bgCard : "bg-white"
                     )}
                   >
@@ -265,11 +262,8 @@ export default function GiftCardsPage() {
 
                       <div className="mt-6">
                         <Button
-                          variant={tier.popular ? "accent" : "outline"}
-                          className={cn(
-                            "w-full font-semibold",
-                            tier.popular && "text-primary shadow-lg"
-                          )}
+                          variant="outline"
+                          className="w-full border-border bg-white font-semibold text-primary shadow-lg transition-colors duration-300 hover:border-accent hover:bg-accent hover:text-primary"
                           size="lg"
                           onClick={handlePurchaseClick}
                         >

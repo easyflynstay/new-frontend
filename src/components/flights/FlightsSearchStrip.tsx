@@ -187,7 +187,7 @@ export function FlightsSearchStrip({
             className={cn(
               "h-full px-3 text-[11px] font-bold uppercase tracking-wide transition-colors",
               tripType === "oneway"
-                ? "bg-accent text-primary shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-slate-600 hover:bg-slate-50"
             )}
           >

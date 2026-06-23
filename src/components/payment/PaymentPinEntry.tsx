@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AnimatedModal } from "@/components/ui/animated-modal";
 import { cn } from "@/lib/utils";
 
 interface PaymentPinEntryProps {
@@ -27,11 +28,12 @@ export function PaymentPinEntry({
 }: PaymentPinEntryProps) {
   const [pin, setPin] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const titleId = "pin-title";
 
   useEffect(() => {
     if (open) {
       setPin("");
-      setTimeout(() => inputRef.current?.focus(), 100);
+      setTimeout(() => inputRef.current?.focus(), 150);
     }
   }, [open]);
 
@@ -42,20 +44,10 @@ export function PaymentPinEntry({
     setPin("");
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="pin-title"
-    >
-      <div
-        className="w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-lg"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <h2 id="pin-title" className="text-lg font-semibold text-foreground">
+    <AnimatedModal open={open} onClose={onClose} labelledBy={titleId} zIndex="z-50">
+      <div className="p-6">
+        <h2 id={titleId} className="text-lg font-semibold text-foreground">
           {title}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
@@ -87,6 +79,6 @@ export function PaymentPinEntry({
           </div>
         </form>
       </div>
-    </div>
+    </AnimatedModal>
   );
 }

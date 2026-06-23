@@ -203,3 +203,20 @@ export async function submitQuoteScreenshot(form: FormData): Promise<{ ok: boole
   return data;
 }
 
+export interface DestinationQuotePayload {
+  name: string;
+  email: string;
+  phone: string;
+  destination: string;
+}
+
+export async function submitDestinationQuote(
+  payload: DestinationQuotePayload
+): Promise<{ ok: boolean; reference: string; message?: string }> {
+  const { data } = await api.post<{ ok: boolean; reference: string; message?: string }>(
+    "/booking/destination-quote",
+    payload
+  );
+  return data;
+}
+

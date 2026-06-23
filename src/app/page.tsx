@@ -13,6 +13,9 @@ import { SectionReveal } from "@/components/ui/section-reveal";
 import { formatUsdAsInr } from "@/lib/currency";
 import { GIFT_CARD_DEMO, giftCardVariantFromTier } from "@/lib/gift-card-tiers";
 import { GiftCardVisual, giftCardClassName } from "@/components/gift-card";
+import { DestinationCarousel } from "@/components/home/DestinationCarousel";
+import { DestinationQuoteModal } from "@/components/home/DestinationQuoteModal";
+import { TestimonialsCarousel } from "@/components/home/TestimonialsCarousel";
 
 const deals = [
   { title: "India", description: "Privately negotiated business class. Save 50–77% off retail fares.", priceUsd: 1529, badge: "BIZ CLASS", image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&h=500&fit=crop&q=85" },
@@ -57,51 +60,6 @@ const whyChoose = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
       </svg>
     ),
-  },
-];
-
-const testimonials = [
-  {
-    name: "Rajesh Sharma",
-    text: "Incredible service! Saved over ₹2,55,000 on my business class flight to London. The team at EASYFLYNSTAY went above and beyond with every detail.",
-    from: "Mumbai, Maharashtra",
-    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face&q=85",
-    rating: 5,
-  },
-  {
-    name: "Meera Ghosh",
-    text: "From booking to boarding, everything was seamless. The concierge team helped me change my dates last minute with zero hassle.",
-    from: "Kolkata, West Bengal",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face&q=85",
-    rating: 5,
-  },
-  {
-    name: "Ananya Patel",
-    text: "Will book again without a second thought. Professional, reliable, and the fares were genuinely the best I could find anywhere online.",
-    from: "New Delhi, NCR",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=face&q=85",
-    rating: 5,
-  },
-  {
-    name: "Vikram Reddy",
-    text: "EASYFLYNSTAY found me a first class deal to Singapore that was far better than what I saw elsewhere. Absolutely phenomenal.",
-    from: "Hyderabad, Telangana",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face&q=85",
-    rating: 5,
-  },
-  {
-    name: "Priya Menon",
-    text: "Their 24/7 concierge is the real deal. Had an issue at 2 AM and they resolved it within minutes. Premium service all the way.",
-    from: "Bengaluru, Karnataka",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face&q=85",
-    rating: 5,
-  },
-  {
-    name: "Dhruba Das",
-    text: "Been using EASYFLYNSTAY for two years now. Every single booking has been flawless. My go-to for all business travel.",
-    from: "Guwahati, Assam",
-    image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop&crop=face&q=85",
-    rating: 5,
   },
 ];
 
@@ -157,6 +115,8 @@ const itemVariants = {
 };
 
 export default function HomePage() {
+  const [quoteDestination, setQuoteDestination] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -274,26 +234,7 @@ export default function HomePage() {
           <SectionReveal className="relative mx-auto max-w-7xl px-4 text-center text-white">
             <h2 className="font-heading text-3xl font-semibold">Explore the World in Luxury</h2>
             <p className="mt-3 text-white/80 max-w-2xl mx-auto">From the streets of Paris to the beaches of Maldives, EASYFLYNSTAY connects you to 500+ destinations in premium comfort.</p>
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              {[
-                { dest: "Dubai", img: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&h=450&fit=crop&q=85", tag: `From ${formatUsdAsInr(899)}` },
-                { dest: "Maldives", img: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&h=450&fit=crop&q=85", tag: `From ${formatUsdAsInr(1299)}` },
-                { dest: "Singapore", img: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&h=450&fit=crop&q=85", tag: `From ${formatUsdAsInr(1099)}` },
-              ].map((item) => (
-                <motion.div
-                  key={item.dest}
-                  whileHover={{ scale: 1.03, y: -5 }}
-                  className="group relative h-72 overflow-hidden cursor-default"
-                >
-                  <Image src={item.img} alt={item.dest} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-4 left-4">
-                    <h3 className="font-heading text-xl font-semibold">{item.dest}</h3>
-                    <span className="text-sm text-accent font-medium">{item.tag}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            <DestinationCarousel onCardClick={setQuoteDestination} />
           </SectionReveal>
         </section>
 
@@ -342,38 +283,7 @@ export default function HomePage() {
               <h2 className="font-heading text-3xl font-semibold text-foreground text-center">What Travelers Say</h2>
               <p className="mt-2 text-center text-muted-foreground">Trusted by travelers across India — from metros to every corner of the country.</p>
             </SectionReveal>
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-            >
-              {testimonials.map((t) => (
-                <motion.div
-                  key={t.name}
-                  variants={itemVariants}
-                  whileHover={{ y: -4 }}
-                  className="border border-border bg-card p-6 shadow-card"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-accent/30">
-                      <Image src={t.image} alt={t.name} fill className="object-cover" />
-                    </div>
-                    <div>
-                      <p className="font-heading font-semibold">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">{t.from}</p>
-                    </div>
-                  </div>
-                  <div className="mb-3 flex text-accent">
-                    {[...Array(t.rating)].map((_, i) => (
-                      <svg key={i} className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground italic text-sm leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-                </motion.div>
-              ))}
-            </motion.div>
+            <TestimonialsCarousel />
           </div>
         </section>
 
@@ -460,6 +370,11 @@ export default function HomePage() {
 
       </main>
       <Footer />
+      <DestinationQuoteModal
+        open={quoteDestination !== null}
+        destination={quoteDestination ?? ""}
+        onClose={() => setQuoteDestination(null)}
+      />
     </div>
   );
 }
